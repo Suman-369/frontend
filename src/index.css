@@ -127,4 +127,7 @@
   html {
     @apply font-sans;
     }
+  a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"], select, label {
+    @apply cursor-pointer;
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Menu,
@@ -217,6 +217,18 @@ const footerLinks = {
 
 const Home = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -247,18 +259,34 @@ const Home = () => {
           </nav>
 
           <div className="hidden items-center gap-4 md:flex">
-            <Link
-              to="/login"
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-indigo-600"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/register"
-              className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
-            >
-              Register
-            </Link>
+            {user ? (
+              <Link
+                to={`/${user.role === 'staff' ? 'staff' : user.role === 'admin' ? 'admin' : 'student'}`}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-4 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 text-sm font-medium text-slate-700"
+              >
+                <img
+                  src="https://i.pravatar.cc/150?img=33"
+                  alt="Profile"
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-slate-600 transition-colors hover:text-indigo-600"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/register"
+                  className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -289,20 +317,37 @@ const Home = () => {
                 </a>
               ))}
               <hr className="border-slate-100" />
-              <Link
-                to="/login"
-                className="text-base font-medium text-slate-700"
-                onClick={() => setMobileOpen(false)}
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/login"
-                className="rounded-xl bg-indigo-600 py-3 text-center text-sm font-semibold text-white"
-                onClick={() => setMobileOpen(false)}
-              >
-                Register
-              </Link>
+              {user ? (
+                <Link
+                  to={`/${user.role === 'staff' ? 'staff' : user.role === 'admin' ? 'admin' : 'student'}`}
+                  className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-base font-medium text-slate-700"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <img
+                    src="https://i.pravatar.cc/150?img=33"
+                    alt="Profile"
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-base font-medium text-slate-700"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="rounded-xl bg-indigo-600 py-3 text-center text-sm font-semibold text-white"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         )}
