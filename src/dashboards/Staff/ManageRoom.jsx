@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Plus, Filter, Edit, Trash2, X, Loader2 } from "lucide-react";
+import { Search, Plus, Filter, Edit, Trash2, X, Loader2, Eye } from "lucide-react";
 import axios from "axios";
 
 const ROOM_SERVICE_URL = "http://localhost:3002/api/staff";
@@ -18,6 +18,8 @@ const ManageRoom = () => {
     capacity: 1,
     status: "available",
     amenities: [],
+    price: 0,
+    occupants: [],
     images: [],
   });
 
@@ -25,9 +27,12 @@ const ManageRoom = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [viewRoom, setViewRoom] = useState(null);
 
   useEffect(() => {
     fetchRooms();
+    fetchUsers();
   }, []);
 
   const fetchRooms = async () => {
@@ -41,6 +46,16 @@ const ManageRoom = () => {
       console.error("Failed to fetch rooms:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [users, setUsers] = useState([]);
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`${ROOM_SERVICE_URL}/users`, { withCredentials: true });
+      setUsers(res.data.users || []);
+    } catch (err) {
+      console.error('Failed to fetch users', err);
     }
   };
 
@@ -79,17 +94,23 @@ const ManageRoom = () => {
       const payload = {
         ...formData,
         images: [...(formData.images || [])],
+        occupants: formData.occupants,
       };
 
       if (imagePreview) {
         payload.images.push(imagePreview);
       }
 
-      await axios.post(`${ROOM_SERVICE_URL}/rooms`, payload, {
-        withCredentials: true,
-      });
+      if (selectedRoom) {
+        // Update existing room
+        await axios.patch(`${ROOM_SERVICE_URL}/rooms/${selectedRoom._id}`, payload, { withCredentials: true });
+      } else {
+        // Create new room
+        await axios.post(`${ROOM_SERVICE_URL}/rooms`, payload, { withCredentials: true });
+      }
 
       setIsModalOpen(false);
+      setSelectedRoom(null);
       setFormData({
         roomNumber: "",
         block: "",
@@ -98,16 +119,17 @@ const ManageRoom = () => {
         capacity: 1,
         status: "available",
         amenities: [],
+        price: 0,
+        occupants: [],
         images: [],
       });
       setImageFile(null);
       setImagePreview("");
       fetchRooms();
     } catch (err) {
-      console.error("Failed to create room:", err);
-      const serverMsg =
-        err?.response?.data?.error || err?.response?.data?.message;
-      setErrorMsg(serverMsg || err.message || "Failed to create room.");
+      console.error("Failed to save room:", err);
+      const serverMsg = err?.response?.data?.error || err?.response?.data?.message;
+      setErrorMsg(serverMsg || err.message || "Failed to save room.");
     } finally {
       setSubmitLoading(false);
     }
@@ -116,14 +138,33 @@ const ManageRoom = () => {
   const deleteRoom = async (id) => {
     if (!window.confirm("Are you sure you want to delete this room?")) return;
     try {
-      await axios.delete(`${ROOM_SERVICE_URL}/rooms/${id}`, {
-        withCredentials: true,
-      });
+      await axios.delete(`${ROOM_SERVICE_URL}/rooms/${id}`, { withCredentials: true });
       fetchRooms();
     } catch (err) {
       console.error("Failed to delete room:", err);
       alert(err.response?.data?.message || "Failed to delete room.");
     }
+  };
+
+  const handleEdit = (room) => {
+    setSelectedRoom(room);
+    setFormData({
+      roomNumber: room.roomNumber,
+      block: room.block,
+      floor: room.floor,
+      description: room.description,
+      capacity: room.capacity,
+      status: room.status,
+      amenities: room.amenities,
+      price: room.price,
+      occupants: room.occupants.map(o => ({ userId: o.user._id })),
+      images: [],
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleView = (room) => {
+    setViewRoom(room);
   };
 
   const filteredRooms = rooms.filter((room) =>
@@ -404,6 +445,21 @@ const ManageRoom = () => {
                     <option value="full">Full</option>
                     <option value="maintenance">Maintenance</option>
                   </select>
+                  {/* Occupants Multi-select */}
+                  <select
+                    multiple
+                    name="occupants"
+                    value={formData.occupants.map(o => o.userId)}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map(opt => ({ userId: opt.value }));
+                      setFormData(prev => ({ ...prev, occupants: selected }));
+                    }}
+                    className="w-full mt-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-medium"
+                  >
+                    {users.map(u => (
+                      <option key={u._id} value={u._id}>{u.fullname?.firstName || ''} {u.fullname?.lastName || ''}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-1.5">
@@ -417,6 +473,20 @@ const ManageRoom = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, amenities: e.target.value.split(",").map(s => s.trim()).filter(Boolean) }))}
                     placeholder="E.g. AC, TV, Attach Bath (comma separated)"
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-medium transition-all"
+                  />
+                  {/* Price Input */}
+
+                   <label className="text-sm font-bold text-gray-700">
+                    Price
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    min="0"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    placeholder="Price (INR)"
+                    className="w-full mt-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-medium"
                   />
                 </div>
 
@@ -498,6 +568,34 @@ const ManageRoom = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Details Modal */}
+      {viewRoom && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">Room Details</h3>
+              <button
+                onClick={() => setViewRoom(null)}
+                className="text-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <p><strong>Room Number:</strong> {viewRoom.roomNumber}</p>
+              <p><strong>Block:</strong> {viewRoom.block}</p>
+              <p><strong>Floor:</strong> {viewRoom.floor}</p>
+              <p><strong>Capacity:</strong> {viewRoom.capacity}</p>
+              <p><strong>Status:</strong> {viewRoom.status}</p>
+              <p><strong>Price (INR):</strong> {viewRoom.price}</p>
+              <p><strong>Amenities:</strong> {(viewRoom.amenities || []).join(', ')}</p>
+              <p><strong>Occupants:</strong> {(viewRoom.occupants || []).map(o => o.user.fullname?.firstName + ' ' + o.user.fullname?.lastName).join(', ') || 'None'}</p>
+              <p><strong>Description:</strong> {viewRoom.description}</p>
             </div>
           </div>
         </div>
