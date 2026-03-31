@@ -1,31 +1,33 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const AuthSuccess = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userParam = searchParams.get('user');
+    const userParam = searchParams.get("user");
+    const tokenParam = searchParams.get("token");
     if (userParam) {
       try {
         const user = JSON.parse(userParam);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('role', user.role);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("role", user.role);
+        localStorage.setItem("token", tokenParam);
+        document.cookie = `token=${tokenParam}; max-age=${30 * 24 * 60 * 60}; path=/; SameSite=None; Secure; domain=localhost;`;
 
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else if (user.role === 'staff') {
-          navigate('/staff');
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else if (user.role === "staff") {
+          navigate("/staff");
         } else {
-          navigate('/student');
+          navigate("/student");
         }
       } catch (err) {
         console.error("Failed to parse user data from Auth callback", err);
-        navigate('/login');
+        navigate("/login");
       }
     } else {
-      navigate('/login');
     }
   }, [searchParams, navigate]);
 

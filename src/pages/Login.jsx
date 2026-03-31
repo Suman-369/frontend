@@ -68,6 +68,10 @@ const Login = () => {
 
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("role", data.user.role);
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        document.cookie = `token=${data.token}; max-age=${30 * 24 * 60 * 60}; path=/; SameSite=None; Secure; domain=localhost;`;
+      }
 
       showAlert({
         variant: "success",
