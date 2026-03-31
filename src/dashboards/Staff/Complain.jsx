@@ -1,33 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { roomApi, complaintApi } from '../../lib/api';
-import { Search, Filter, MoreVertical, AlertCircle, CheckCircle2, Loader2, Edit3 } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { roomApi, complaintApi } from "../../lib/api";
+import {
+  Search,
+  Filter,
+  MoreVertical,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Edit3,
+  Trash2,
+} from "lucide-react";
 
 const getStatusColor = (status) => {
-  switch(status) {
-    case 'pending': return 'bg-orange-100 text-orange-600 border-orange-200';
-    case 'in_progress': return 'bg-blue-100 text-blue-600 border-blue-200';
-    case 'resolved': return 'bg-emerald-100 text-emerald-600 border-emerald-200';
-    case 'rejected': return 'bg-red-100 text-red-600 border-red-200';
-    default: return 'bg-gray-100 text-gray-600 border-gray-200';
+  switch (status) {
+    case "pending":
+      return "bg-orange-100 text-orange-600 border-orange-200";
+    case "in_progress":
+      return "bg-blue-100 text-blue-600 border-blue-200";
+    case "resolved":
+      return "bg-emerald-100 text-emerald-600 border-emerald-200";
+    case "rejected":
+      return "bg-red-100 text-red-600 border-red-200";
+    default:
+      return "bg-gray-100 text-gray-600 border-gray-200";
   }
 };
 
 const getPriorityColor = (priority) => {
-  switch(priority) {
-    case 'high': return 'text-red-600 bg-red-50';
-    case 'medium': return 'text-orange-600 bg-orange-50';
-    case 'low': return 'text-blue-600 bg-blue-50';
-    default: return 'text-gray-600 bg-gray-50';
+  switch (priority) {
+    case "high":
+      return "text-red-600 bg-red-50";
+    case "medium":
+      return "text-orange-600 bg-orange-50";
+    case "low":
+      return "text-blue-600 bg-blue-50";
+    default:
+      return "text-gray-600 bg-gray-50";
   }
 };
 
 const getCategoryLabel = (category) => {
   const labels = {
-    room: 'Room Maintenance',
-    service: 'Service',
-    facility: 'Facility',
-    other: 'Other'
+    room: "Room Maintenance",
+    service: "Service",
+    facility: "Facility",
+    other: "Other",
   };
   return labels[category] || category;
 };
@@ -37,23 +55,28 @@ const Complain = () => {
   const [complaints, setComplaints] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionModal, setActionModal] = useState({ show: false, complaintId: null });
-  const [actionData, setActionData] = useState({ status: '', staffNote: '' });
+  const [actionModal, setActionModal] = useState({
+    show: false,
+    complaintId: null,
+  });
+  const [actionData, setActionData] = useState({ status: "", staffNote: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const [complaintsRes, roomsRes] = await Promise.all([
-complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${filterStatus}`}`),
-        roomApi.get('/rooms')
+        complaintApi.get(
+          `/staff/complaints${filterStatus === "all" ? "" : `?status=${filterStatus}`}`,
+        ),
+        roomApi.get("/rooms"),
       ]);
       setComplaints(complaintsRes.data.complaints || []);
       setRooms(roomsRes.data.rooms || []);
     } catch (err) {
-      console.error('Failed to fetch data:', err);
+      console.error("Failed to fetch data:", err);
     } finally {
       setLoading(false);
     }
@@ -65,51 +88,63 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
 
   const getStudentRoom = (studentId) => {
     for (const room of rooms) {
-      const occupant = room.occupants.find(o => o.user.id === studentId);
+      const occupant = room.occupants.find((o) => o.user.id === studentId);
       if (occupant) return room.roomNumber;
     }
-    return 'N/A';
+    return "N/A";
   };
 
   const getStudentName = (student) => {
     if (student.fullname) {
-      return `${student.fullname.firstName || ''} ${student.fullname.lastName || ''}`.trim() || student.email;
+      return (
+        `${student.fullname.firstName || ""} ${student.fullname.lastName || ""}`.trim() ||
+        student.email
+      );
     }
-    return student.email || 'Unknown';
+    return student.email || "Unknown";
   };
 
   const handleActionSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await complaintApi.patch(`/staff/complaints/${actionModal.complaintId}/action`, actionData);
+      await complaintApi.patch(
+        `/staff/complaints/${actionModal.complaintId}/action`,
+        actionData,
+      );
       setActionModal({ show: false, complaintId: null });
       fetchData();
     } catch (err) {
-      console.error('Failed to update complaint:', err);
+      console.error("Failed to update complaint:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredComplaints = complaints.filter(comp => {
+  const filteredComplaints = complaints.filter((comp) => {
     const studentName = getStudentName(comp.student).toLowerCase();
     const search = searchTerm.toLowerCase();
-    return studentName.includes(search) || comp.title.toLowerCase().includes(search) || comp.description.toLowerCase().includes(search);
+    return (
+      studentName.includes(search) ||
+      comp.title.toLowerCase().includes(search) ||
+      comp.description.toLowerCase().includes(search)
+    );
   });
 
   const statusOptions = [
-    { value: 'all', label: 'All' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'resolved', label: 'Resolved' },
-    { value: 'rejected', label: 'Rejected' }
+    { value: "all", label: "All" },
+    { value: "pending", label: "Pending" },
+    { value: "in_progress", label: "In Progress" },
+    { value: "resolved", label: "Resolved" },
+    { value: "rejected", label: "Rejected" },
   ];
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+      <div className="p-8 rounded-3xl bg-white border border-gray-100 shadow-sm">
+        <p className="text-sm text-gray-500">
+          Loading complaints data... please wait.
+        </p>
       </div>
     );
   }
@@ -118,18 +153,24 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Complaints Management</h2>
-          <p className="text-sm text-gray-500 mt-1 font-medium">Handle and track student issues</p>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Complaints Management
+          </h2>
+          <p className="text-sm text-gray-500 mt-1 font-medium">
+            Handle and track student issues
+          </p>
         </div>
-        
+
         <div className="flex gap-3">
-          <select 
-            value={filterStatus} 
+          <select
+            value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 focus:ring-2 focus:ring-indigo-400 outline-none"
           >
-            {statusOptions.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
         </div>
@@ -148,16 +189,26 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
             />
           </div>
         </div>
-        
-        <div className="overflow-x-auto min-h-[400px]">
+
+        <div className="overflow-x-auto min-h-100">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/50">
-                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Student Details</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Issue</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Priority</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
+                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  Student Details
+                </th>
+                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  Issue
+                </th>
+                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  Priority
+                </th>
+                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="py-4 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -169,42 +220,90 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
                 </tr>
               ) : (
                 filteredComplaints.map((comp) => (
-                  <tr key={comp.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr
+                    key={comp.id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
                     <td className="py-4 px-6">
-
-                      <p className="text-sm font-bold text-gray-900">{getStudentName(comp.student)}</p>
-                      <p className="text-xs font-semibold text-gray-500">Room: {getStudentRoom(comp.studentId)}</p>
-                      <p className="text-xs font-semibold text-gray-500">{comp.student?.email || 'N/A'}</p>
+                      <p className="text-sm font-bold text-gray-900">
+                        {getStudentName(comp.student)}
+                      </p>
+                      <p className="text-xs font-semibold text-gray-500">
+                        Room: {getStudentRoom(comp.studentId)}
+                      </p>
+                      <p className="text-xs font-semibold text-gray-500">
+                        {comp.student?.email || "N/A"}
+                      </p>
                     </td>
 
                     <td className="py-4 px-6">
-                      <p className="text-sm font-bold text-gray-900">{getCategoryLabel(comp.category)}</p>
-                      <p className="text-xs font-medium text-gray-500 truncate max-w-[200px]" title={comp.description}>
+                      <p className="text-sm font-bold text-gray-900">
+                        {getCategoryLabel(comp.category)}
+                      </p>
+                      <p
+                        className="text-xs font-medium text-gray-500 truncate max-w-50"
+                        title={comp.description}
+                      >
                         {comp.description}
                       </p>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${getPriorityColor(comp.priority)}`}>
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-full ${getPriorityColor(comp.priority)}`}
+                      >
                         {comp.priority.toUpperCase()}
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${getStatusColor(comp.status)} flex items-center justify-center w-max gap-1 mb-1`}>
-                        {comp.status === 'resolved' && <CheckCircle2 className="w-3 h-3" />}
-                        {(comp.status === 'pending' || comp.status === 'in_progress') && <AlertCircle className="w-3 h-3" />}
-                        {comp.status.replace('_', ' ').toUpperCase()}
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-lg border ${getStatusColor(comp.status)} flex items-center justify-center w-max gap-1 mb-1`}
+                      >
+                        {comp.status === "resolved" && (
+                          <CheckCircle2 className="w-3 h-3" />
+                        )}
+                        {(comp.status === "pending" ||
+                          comp.status === "in_progress") && (
+                          <AlertCircle className="w-3 h-3" />
+                        )}
+                        {comp.status.replace("_", " ").toUpperCase()}
                       </span>
-                      <p className="text-xs text-gray-500 italic truncate max-w-[150px]">
-                        {comp.staffNote || 'No note'}
+                      <p className="text-xs text-gray-500 italic truncate max-w-37.5">
+                        {comp.staffNote || "No note"}
                       </p>
                     </td>
-                    <td className="py-4 px-6 text-right">
-                      <button 
-                        onClick={() => setActionModal({ show: true, complaintId: comp.id })}
+                    <td className="py-4 px-6 text-right flex justify-end gap-2">
+                      <button
+                        onClick={() => navigate(`/staff/complaints/${comp.id}`)}
+                        className="px-3 py-2 text-xs font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all"
+                        title="View Details"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() =>
+                          setActionModal({ show: true, complaintId: comp.id })
+                        }
                         className="p-2 text-gray-400 hover:text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50"
                         title="Update Status"
                       >
                         <Edit3 size={18} />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (window.confirm('Are you sure you want to delete this complaint? This action cannot be undone.')) {
+                            try {
+                              await complaintApi.delete(`/staff/complaints/${comp.id}`);
+                              fetchData();
+                            } catch (err) {
+                              console.error('Delete failed:', err);
+                              alert('Failed to delete complaint');
+                            }
+                          }
+                        }}
+                        className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50 ml-1"
+                        title="Delete Complaint"
+                      >
+                        <Trash2 size={18} />
                       </button>
                     </td>
                   </tr>
@@ -219,14 +318,20 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
       {actionModal.show && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Update Complaint Status</h3>
-            
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Update Complaint Status
+            </h3>
+
             <form onSubmit={handleActionSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                <select 
-                  value={actionData.status} 
-                  onChange={(e) => setActionData({ ...actionData, status: e.target.value })}
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  value={actionData.status}
+                  onChange={(e) =>
+                    setActionData({ ...actionData, status: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
                   required
                 >
@@ -239,26 +344,32 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Staff Note (Optional)</label>
-                <textarea 
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Staff Note (Optional)
+                </label>
+                <textarea
                   rows="4"
                   value={actionData.staffNote}
-                  onChange={(e) => setActionData({ ...actionData, staffNote: e.target.value })}
+                  onChange={(e) =>
+                    setActionData({ ...actionData, staffNote: e.target.value })
+                  }
                   placeholder="Add notes for this update..."
                   className="w-full p-3 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 resize-vertical"
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button 
+                <button
                   type="button"
-                  onClick={() => setActionModal({ show: false, complaintId: null })}
+                  onClick={() =>
+                    setActionModal({ show: false, complaintId: null })
+                  }
                   className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-2xl font-semibold hover:bg-gray-200 transition-all"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting}
                   className="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-semibold hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
@@ -279,4 +390,3 @@ complaintApi.get(`/staff/complaints${filterStatus === 'all' ? '' : `?status=${fi
 };
 
 export default Complain;
-

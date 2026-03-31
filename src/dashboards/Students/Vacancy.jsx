@@ -18,7 +18,7 @@ import {
   Phone,
   MessageSquare,
 } from "lucide-react";
-import { roomApi } from "../../lib/api";
+import { studentRoomApi } from "../../lib/api";
 import { useNavigate } from "react-router-dom";
 
 const Vacancy = () => {
@@ -29,10 +29,20 @@ const Vacancy = () => {
   const [viewRoom, setViewRoom] = useState(null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [formData, setFormData] = useState({ name: '', rollNo: '', courseStream: '', mobile: '', message: '' });
+  const [formData, setFormData] = useState({
+    name: "",
+    rollNo: "",
+    courseStream: "",
+    mobile: "",
+    message: "",
+  });
   const [submitting, setSubmitting] = useState(false);
   const [myApplications, setMyApplications] = useState([]);
-  const [notification, setNotification] = useState({ open: false, type: '', message: '' });
+  const [notification, setNotification] = useState({
+    open: false,
+    type: "",
+    message: "",
+  });
   const [rejectedApp, setRejectedApp] = useState(null);
   const navigate = useNavigate();
 
@@ -43,12 +53,12 @@ const Vacancy = () => {
 
   const fetchMyApplications = async () => {
     try {
-      const res = await roomApi.get('/student/applications', {
+      const res = await studentRoomApi.get("/applications", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMyApplications(res.data.applications || []);
     } catch (err) {
-      console.error('Failed to fetch applications', err);
+      console.error("Failed to fetch applications", err);
     }
   };
 
@@ -62,7 +72,7 @@ const Vacancy = () => {
   const fetchAvailableRooms = async () => {
     try {
       setLoading(true);
-      const res = await roomApi.get('/student/rooms', {
+      const res = await studentRoomApi.get("/rooms", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -128,7 +138,7 @@ const Vacancy = () => {
 
   const handleOpenApply = (room) => {
     const status = getRoomApplicationStatus(room._id);
-    if (status === 'pending' || status === 'approved') {
+    if (status === "pending" || status === "approved") {
       alert(`Application is ${status}. Cannot apply again.`);
       return;
     }
@@ -139,32 +149,48 @@ const Vacancy = () => {
   const handleCloseApply = () => {
     setApplyOpen(false);
     setSelectedRoom(null);
-    setFormData({ name: '', rollNo: '', courseStream: '', mobile: '', message: '' });
+    setFormData({
+      name: "",
+      rollNo: "",
+      courseStream: "",
+      mobile: "",
+      message: "",
+    });
   };
 
   const closeNotification = () => {
-    setNotification({ open: false, type: '', message: '' });
+    setNotification({ open: false, type: "", message: "" });
   };
 
-
-
   const getRoomApplicationStatus = (roomId) => {
-    const app = myApplications.find(a => a.room._id === roomId);
-    if (!app) return 'apply';
-    if (app.status === 'pending') return 'pending';
-    if (app.status === 'approved') return 'approved';
-    if (app.status === 'rejected' || app.status === 'cancelled') return 'rejected';
-    return 'apply';
+    const app = myApplications.find((a) => a.room._id === roomId);
+    if (!app) return "apply";
+    if (app.status === "pending") return "pending";
+    if (app.status === "approved") return "approved";
+    if (app.status === "rejected" || app.status === "cancelled")
+      return "rejected";
+    return "apply";
   };
 
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'pending':
-        return { text: 'Pending Review', color: 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-50' };
-      case 'approved':
-        return { text: 'Approved ✓', color: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-50' };
-      case 'rejected':
-        return { text: 'Rejected', color: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-50' };
+      case "pending":
+        return {
+          text: "Pending Review",
+          color:
+            "bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-50",
+        };
+      case "approved":
+        return {
+          text: "Approved ✓",
+          color:
+            "bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-50",
+        };
+      case "rejected":
+        return {
+          text: "Rejected",
+          color: "bg-red-100 text-red-700 border-red-200 hover:bg-red-50",
+        };
       default:
         return null;
     }
@@ -172,27 +198,40 @@ const Vacancy = () => {
 
   const handleSubmitForm = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.rollNo || !formData.courseStream || !formData.mobile) {
+    if (
+      !formData.name ||
+      !formData.rollNo ||
+      !formData.courseStream ||
+      !formData.mobile
+    ) {
       alert("Please fill all fields");
       return;
     }
     try {
       setSubmitting(true);
-      await roomApi.post('/student/applications', {
-        roomId: selectedRoom._id,
-        studentDetails: {
-          name: formData.name,
-          rollNo: formData.rollNo,
-          courseStream: formData.courseStream,
-          mobile: formData.mobile
+      await studentRoomApi.post(
+        "/applications",
+        {
+          roomId: selectedRoom._id,
+          studentDetails: {
+            name: formData.name,
+            rollNo: formData.rollNo,
+            courseStream: formData.courseStream,
+            mobile: formData.mobile,
+          },
+          message: formData.message || "I would like to apply for this room.",
         },
-        message: formData.message || "I would like to apply for this room."
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
+      );
+      setNotification({
+        open: true,
+        type: "success",
+        message: "Application submitted! Status: Pending",
       });
-      setNotification({ open: true, type: 'success', message: 'Application submitted! Status: Pending' });
       fetchAvailableRooms();
       fetchMyApplications();
       handleCloseApply();
@@ -204,7 +243,11 @@ const Vacancy = () => {
         window.location.href = "/login?from=student";
         return;
       }
-      setNotification({ open: true, type: 'error', message: err.response?.data?.message || 'Failed to submit application.' });
+      setNotification({
+        open: true,
+        type: "error",
+        message: err.response?.data?.message || "Failed to submit application.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -212,7 +255,7 @@ const Vacancy = () => {
 
   const fetchRoomDetail = async (id) => {
     try {
-      const res = await roomApi.get(`/student/rooms/${id}`, {
+      const res = await studentRoomApi.get(`/rooms/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -416,7 +459,12 @@ const Vacancy = () => {
                       return (
                         <button
                           onClick={() => {
-                            const app = myApplications.find(a => a.room._id === room._id && (a.status === 'rejected' || a.status === 'cancelled'));
+                            const app = myApplications.find(
+                              (a) =>
+                                a.room._id === room._id &&
+                                (a.status === "rejected" ||
+                                  a.status === "cancelled"),
+                            );
                             if (app && app.staffNote) {
                               setRejectedApp(app);
                             }
@@ -444,22 +492,30 @@ const Vacancy = () => {
       )}
 
       {/* Apply Modal */}
-{applyOpen && selectedRoom && (
+      {applyOpen && selectedRoom && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in zoom-in duration-200">
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] mx-4 shadow-2xl overflow-hidden">
             <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6 rounded-t-3xl">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold">Apply for Room</h2>
-                  <p className="text-emerald-100">Room {selectedRoom.roomNumber} - Block {selectedRoom.block}</p>
+                  <p className="text-emerald-100">
+                    Room {selectedRoom.roomNumber} - Block {selectedRoom.block}
+                  </p>
                 </div>
-                <button onClick={handleCloseApply} className="p-2 hover:bg-white/20 rounded-xl transition-all">
+                <button
+                  onClick={handleCloseApply}
+                  className="p-2 hover:bg-white/20 rounded-xl transition-all"
+                >
                   <X size={24} />
                 </button>
               </div>
             </div>
             <div className="p-6 pb-8">
-              <form onSubmit={handleSubmitForm} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form
+                onSubmit={handleSubmitForm}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              >
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                     <User size={18} className="text-indigo-500" />
@@ -468,7 +524,9 @@ const Vacancy = () => {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
                     required
                   />
@@ -481,7 +539,9 @@ const Vacancy = () => {
                   <input
                     type="text"
                     value={formData.rollNo}
-                    onChange={(e) => setFormData({...formData, rollNo: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, rollNo: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
                     required
                   />
@@ -494,7 +554,9 @@ const Vacancy = () => {
                   <input
                     type="text"
                     value={formData.courseStream}
-                    onChange={(e) => setFormData({...formData, courseStream: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, courseStream: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
                     placeholder="e.g., B.Tech Computer Science"
                     required
@@ -508,7 +570,9 @@ const Vacancy = () => {
                   <input
                     type="tel"
                     value={formData.mobile}
-                    onChange={(e) => setFormData({...formData, mobile: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, mobile: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
                     placeholder="+91 9876543210"
                     required
@@ -522,7 +586,9 @@ const Vacancy = () => {
                   <textarea
                     rows="4"
                     value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-vertical"
                     placeholder="Any additional information about your application..."
                   />
@@ -562,17 +628,25 @@ const Vacancy = () => {
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl max-h-[70vh] overflow-y-auto">
             <div className="sticky top-0 bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-3xl">
               <h2 className="text-xl font-bold">Application Rejected</h2>
-              <p className="text-red-100 mt-1">Room {rejectedApp.room.roomNumber}</p>
+              <p className="text-red-100 mt-1">
+                Room {rejectedApp.room.roomNumber}
+              </p>
             </div>
             <div className="p-6 space-y-4">
               {rejectedApp.staffNote && (
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                  <h3 className="font-semibold text-gray-900 mb-2">Staff Note:</h3>
-                  <p className="text-gray-700 whitespace-pre-wrap">{rejectedApp.staffNote}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Staff Note:
+                  </h3>
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {rejectedApp.staffNote}
+                  </p>
                 </div>
               )}
               {!rejectedApp.staffNote && (
-                <p className="text-gray-500 italic text-center py-8">No specific reason provided</p>
+                <p className="text-gray-500 italic text-center py-8">
+                  No specific reason provided
+                </p>
               )}
               <div className="flex gap-3 pt-2">
                 <button
@@ -584,7 +658,7 @@ const Vacancy = () => {
                 <button
                   onClick={() => {
                     setRejectedApp(null);
-                    navigate('/student/complaints');
+                    navigate("/student/complaints");
                   }}
                   className="flex-1 px-6 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg flex items-center justify-center gap-2"
                 >
@@ -599,28 +673,32 @@ const Vacancy = () => {
       {/* Notification Popup */}
       {notification.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-          <div className={`relative rounded-3xl p-6 shadow-2xl max-w-md w-full transform transition-all animate-in fade-in-0 zoom-in-95 ${
-            notification.type === 'success' 
-              ? 'bg-emerald-500 text-white border-emerald-400 border-2' 
-              : 'bg-red-500 text-white border-red-400 border-2'
-          }`}>
+          <div
+            className={`relative rounded-3xl p-6 shadow-2xl max-w-md w-full transform transition-all animate-in fade-in-0 zoom-in-95 ${
+              notification.type === "success"
+                ? "bg-emerald-500 text-white border-emerald-400 border-2"
+                : "bg-red-500 text-white border-red-400 border-2"
+            }`}
+          >
             <button
               onClick={closeNotification}
               className="absolute top-3 right-3 p-1.5 bg-white/30 rounded-full transition-all hover:bg-white/40 shadow-lg z-10"
-              style={{ minWidth: '28px', minHeight: '28px' }}
+              style={{ minWidth: "28px", minHeight: "28px" }}
             >
               <XCircle size={18} className="text-white drop-shadow-sm" />
             </button>
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
-                {notification.type === 'success' ? (
+                {notification.type === "success" ? (
                   <CheckCircle size={24} />
                 ) : (
                   <XCircle size={24} />
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-lg">{notification.type === 'success' ? 'Success!' : 'Error!'}</h3>
+                <h3 className="font-bold text-lg">
+                  {notification.type === "success" ? "Success!" : "Error!"}
+                </h3>
                 <p className="text-white/90 mt-1">{notification.message}</p>
               </div>
             </div>

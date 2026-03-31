@@ -15,6 +15,7 @@ import DashboardHome from "./dashboards/Students/DashboardHome.jsx";
 import StaffDashboard from "./dashboards/Staff/DashBoard.jsx";
 import StaffDashboardHome from "./dashboards/Staff/DashboardHome.jsx";
 import StaffComplain from "./dashboards/Staff/Complain.jsx";
+import StaffComplaintDetail from "./dashboards/Staff/ComplaintDetail.jsx";
 import StaffManageRoom from "./dashboards/Staff/ManageRoom.jsx";
 import StaffReports from "./dashboards/Staff/Reports.jsx";
 import StaffApplication from "./dashboards/Staff/Application.jsx";
@@ -37,9 +38,9 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/success" element={<AuthSuccess />} />
-            
+
             {/* Student Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+            <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
               <Route path="/student" element={<StudentPage />}>
                 <Route index element={<DashboardHome />} />
                 <Route path="myroom" element={<MyRoom />} />
@@ -49,10 +50,14 @@ const App = () => {
             </Route>
 
             {/* Staff Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['staff']} />}>
+            <Route element={<ProtectedRoute allowedRoles={["staff"]} />}>
               <Route path="/staff" element={<StaffDashboard />}>
                 <Route index element={<StaffDashboardHome />} />
                 <Route path="complaints" element={<StaffComplain />} />
+                <Route
+                  path="complaints/:id"
+                  element={<StaffComplaintDetail />}
+                />
                 <Route path="manage-rooms" element={<StaffManageRoom />} />
                 <Route path="reports" element={<StaffReports />} />
                 <Route path="applications" element={<StaffApplication />} />
@@ -60,12 +65,15 @@ const App = () => {
             </Route>
 
             {/* Admin Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
               <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<AdminDashboardHome />} />
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
-                <Route path="staff-management" element={<AdminStaffManagement />} />
+                <Route
+                  path="staff-management"
+                  element={<AdminStaffManagement />}
+                />
                 <Route path="work-assign" element={<AdminWorkAssign />} />
               </Route>
             </Route>

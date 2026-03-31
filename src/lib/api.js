@@ -18,7 +18,7 @@ const createApiInstance = (baseURL) => {
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   // Response interceptor to handle 401
@@ -34,16 +34,19 @@ const createApiInstance = (baseURL) => {
         window.location.href = `/login?from=${from}`;
       }
       return Promise.reject(error);
-    }
+    },
   );
 
   return instance;
 };
 
 const authApi = createApiInstance("http://localhost:3000/api/auth");
-const roomApi = createApiInstance("http://localhost:3002/api/staff");
+const staffRoomApi = createApiInstance("http://localhost:3002/api/staff");
+const studentRoomApi = createApiInstance("http://localhost:3002/api/student");
 const complaintApi = createApiInstance("http://localhost:3003/api");
 
-export { authApi, roomApi, complaintApi };
-export default authApi;
+// Keep roomApi alias for existing staff code (backward compatibility)
+const roomApi = staffRoomApi;
 
+export { authApi, roomApi, staffRoomApi, studentRoomApi, complaintApi };
+export default authApi;
