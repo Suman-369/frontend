@@ -19,6 +19,340 @@ import axios from "axios";
 
 const ROOM_SERVICE_URL = "http://localhost:3002/api/staff";
 
+// ── Extracted OUTSIDE ManageRoom to prevent remount on every render ──
+const RoomFormFields = ({
+  formData,
+  handleInputChange,
+  amenitiesInput,
+  setAmenitiesInput,
+  imagePreview,
+  handleImageSelect,
+  toggleOccupant,
+  removeOccupant,
+  getOccupantName,
+  displayedUsers,
+  studentSearchQuery,
+  setStudentSearchQuery,
+  studentUsers,
+  availableStudentsCount,
+  submitLoading,
+  selectedRoom,
+  onCancel,
+  handleSubmit,
+  errorMsg,
+}) => (
+  <form onSubmit={handleSubmit} className="space-y-8">
+    {/* Basic Info */}
+    <div>
+      <h3 className="text-lg font-bold text-gray-900 mb-4">
+        Room Information
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Room Number *
+          </label>
+          <input
+            required
+            type="text"
+            name="roomNumber"
+            value={formData.roomNumber}
+            onChange={handleInputChange}
+            placeholder="E.g. A-101"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Capacity *
+          </label>
+          <input
+            required
+            type="number"
+            min="1"
+            name="capacity"
+            value={formData.capacity}
+            onChange={handleInputChange}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Block
+          </label>
+          <input
+            type="text"
+            name="block"
+            value={formData.block}
+            onChange={handleInputChange}
+            placeholder="E.g. Block A"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Floor
+          </label>
+          <input
+            type="text"
+            name="floor"
+            value={formData.floor}
+            onChange={handleInputChange}
+            placeholder="E.g. Ground"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Status
+          </label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-medium transition-all"
+          >
+            <option value="available">Available</option>
+            <option value="full">Full</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Price (₹/month)
+          </label>
+          <input
+            type="number"
+            name="price"
+            min="0"
+            value={formData.price}
+            onChange={handleInputChange}
+            placeholder="Enter price"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          />
+        </div>
+      </div>
+    </div>
+
+    {/* Amenities */}
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-2">
+        Amenities
+      </label>
+      <input
+        type="text"
+        name="amenities"
+        value={amenitiesInput}
+        onChange={(e) => setAmenitiesInput(e.target.value)}
+        placeholder="E.g. AC, TV, WiFi, Attach Bath (comma separated)"
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+      />
+    </div>
+
+    {/* Description */}
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-2">
+        Room Description
+      </label>
+      <textarea
+        name="description"
+        value={formData.description}
+        onChange={handleInputChange}
+        placeholder="Add specific details about the room..."
+        rows={4}
+        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm resize-vertical"
+      />
+    </div>
+
+    {/* Room Image */}
+    <div>
+      <label className="block text-sm font-bold text-gray-700 mb-2">
+        Room Image
+      </label>
+      <div className="flex items-center gap-3">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageSelect}
+          className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+      </div>
+      {(imagePreview || formData.images.length > 0) && (
+        <div className="flex gap-2 mt-3 overflow-x-auto">
+          {imagePreview && (
+            <div className="relative w-20 h-20 shrink-0">
+              <img
+                src={imagePreview}
+                alt="preview"
+                className="w-full h-full object-cover rounded-xl border border-gray-200"
+              />
+            </div>
+          )}
+          {formData.images
+            .filter((img) => img !== imagePreview)
+            .map((img, i) => (
+              <div key={i} className="relative w-20 h-20 shrink-0">
+                <img
+                  src={img}
+                  alt="preview"
+                  className="w-full h-full object-cover rounded-xl border border-gray-200"
+                />
+              </div>
+            ))}
+        </div>
+      )}
+    </div>
+
+    {/* Occupants Section */}
+    <div className="border-t-2 border-gray-200 pt-6">
+      <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <Users size={20} className="text-blue-600" />
+        Assign Occupants
+      </h3>
+
+      {/* Selected Occupants Pills */}
+      <div className="flex flex-wrap gap-2 mb-4 p-4 bg-blue-50 rounded-xl border border-blue-200 min-h-14">
+        {formData.occupants.length === 0 ? (
+          <span className="text-sm text-gray-500 italic">
+            No occupants assigned yet
+          </span>
+        ) : (
+          formData.occupants.map((occupant) => (
+            <div
+              key={occupant.userId}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:shadow-md transition-shadow"
+            >
+              <span>{getOccupantName(occupant.userId)}</span>
+              <button
+                type="button"
+                onClick={() => removeOccupant(occupant.userId)}
+                className="hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Student Search Input */}
+      <div className="mb-4">
+        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+          Search Students
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            {availableStudentsCount} available
+          </span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Type student name or email (e.g. John Doe, john@example.com)"
+            value={studentSearchQuery}
+            onChange={(e) => setStudentSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          />
+          <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          {studentSearchQuery && (
+            <button
+              type="button"
+              onClick={() => setStudentSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        {studentSearchQuery && (
+          <p className="text-xs text-gray-500 mt-1">
+            Showing {displayedUsers.length} of {studentUsers.length} students
+          </p>
+        )}
+      </div>
+
+      {/* Occupants Grid Selection */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+        {displayedUsers.length === 0 ? (
+          <div className="col-span-2 text-center py-8 text-gray-500">
+            {studentSearchQuery
+              ? "No students match your search"
+              : "No students available to assign"}
+            {studentSearchQuery && (
+              <button
+                type="button"
+                onClick={() => setStudentSearchQuery("")}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 underline"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+        ) : (
+          displayedUsers.map((user) => {
+            const isSelected = formData.occupants.some(
+              (o) => o.userId === user._id,
+            );
+            return (
+              <button
+                key={user._id}
+                type="button"
+                onClick={() => toggleOccupant(user._id)}
+                className={`text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 border-2 ${
+                  isSelected
+                    ? "bg-blue-100 border-blue-400 shadow-sm"
+                    : "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                    isSelected
+                      ? "bg-blue-600 border-blue-600"
+                      : "border-gray-400"
+                  }`}
+                >
+                  {isSelected && (
+                    <span className="text-white text-xs">✓</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900 truncate">
+                    {user.fullname?.firstName || ""}{" "}
+                    {user.fullname?.lastName || ""}
+                  </p>
+                  <p className="text-xs text-gray-600 truncate">
+                    {user.email} • {user.role || "Student"}
+                  </p>
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+
+    {/* Footer Buttons */}
+    <div className="border-t-2 border-gray-200 pt-6 flex justify-end gap-3">
+      <button
+        type="button"
+        onClick={onCancel}
+        className="px-6 py-2.5 text-sm font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 transition-colors"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={submitLoading}
+        className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:shadow-lg transition-all disabled:opacity-70 shadow-md"
+      >
+        {submitLoading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <span>{selectedRoom ? "Save Details" : "Create Room"}</span>
+        )}
+      </button>
+    </div>
+  </form>
+);
+
 const ManageRoom = () => {
   const token = localStorage.getItem("token") || "";
   const [rooms, setRooms] = useState([]);
@@ -47,7 +381,7 @@ const ManageRoom = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [viewRoom, setViewRoom] = useState(null);
   const [users, setUsers] = useState([]);
-  const [studentSearchQuery, setStudentSearchQuery] = useState(""); // New for student search
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
 
   useEffect(() => {
     fetchRooms();
@@ -66,9 +400,7 @@ const ManageRoom = () => {
     try {
       const res = await axios.get(`${ROOM_SERVICE_URL}/rooms`, {
         withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setRooms(res.data.rooms || []);
     } catch (err) {
@@ -77,7 +409,6 @@ const ManageRoom = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         window.location.href = "/login?from=staff";
-        return;
       }
     } finally {
       setLoading(false);
@@ -88,9 +419,7 @@ const ManageRoom = () => {
     try {
       const res = await axios.get(`${ROOM_SERVICE_URL}/users`, {
         withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data.users || []);
     } catch (err) {
@@ -99,14 +428,12 @@ const ManageRoom = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         window.location.href = "/login?from=staff";
-        return;
       }
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]:
@@ -125,26 +452,19 @@ const ManageRoom = () => {
       return;
     }
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
+    reader.onloadend = () => setImagePreview(reader.result);
     reader.readAsDataURL(file);
   };
 
   const toggleOccupant = (userId) => {
     setFormData((prev) => {
       const isSelected = prev.occupants.some((o) => o.userId === userId);
-      if (isSelected) {
-        return {
-          ...prev,
-          occupants: prev.occupants.filter((o) => o.userId !== userId),
-        };
-      } else {
-        return {
-          ...prev,
-          occupants: [...prev.occupants, { userId }],
-        };
-      }
+      return {
+        ...prev,
+        occupants: isSelected
+          ? prev.occupants.filter((o) => o.userId !== userId)
+          : [...prev.occupants, { userId }],
+      };
     });
   };
 
@@ -155,22 +475,22 @@ const ManageRoom = () => {
     }));
   };
 
-const getOccupantName = (userId) => {
+  const getOccupantName = (userId) => {
     const user = users.find((u) => u._id === userId);
     if (!user) return "Unknown";
     return `${user.fullname?.firstName || ""} ${user.fullname?.lastName || ""}`.trim();
   };
 
-  // Filter students only and apply search
   const studentUsers = users.filter((user) => user.role === "student");
   const displayedUsers = studentUsers.filter((user) =>
     studentSearchQuery === ""
       ? true
       : `${user.fullname?.firstName || ""} ${user.fullname?.lastName || ""} ${user.email || ""}`
           .toLowerCase()
-          .includes(studentSearchQuery.toLowerCase())
+          .includes(studentSearchQuery.toLowerCase()),
   );
-  const availableStudentsCount = studentUsers.length - formData.occupants.length;
+  const availableStudentsCount =
+    studentUsers.length - formData.occupants.length;
 
   const resetForm = () => {
     setFormData({
@@ -188,50 +508,51 @@ const getOccupantName = (userId) => {
     setAmenitiesInput("");
     setImagePreview("");
     setErrorMsg("");
+    setStudentSearchQuery("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Sync amenities before submit
     const amenities = amenitiesInput
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean);
-    setFormData((prev) => ({ ...prev, amenities }));
+      .filter((s) => s.length > 0);
+
+    const payload = {
+      ...formData,
+      roomNumber: formData.roomNumber.trim(),
+      block: formData.block.trim(),
+      floor: formData.floor.trim(),
+      description: formData.description.trim(),
+      amenities,
+    };
+
+    if ((formData.images || []).length > 0 || imagePreview) {
+      payload.images = [...(formData.images || [])];
+      if (imagePreview && !payload.images.includes(imagePreview)) {
+        payload.images.push(imagePreview);
+      }
+    }
 
     setSubmitLoading(true);
     setErrorMsg("");
 
     try {
-      const payload = { ...formData, amenities };
-      if ((formData.images || []).length > 0 || imagePreview) {
-        payload.images = [...(formData.images || [])];
-        if (imagePreview && !payload.images.includes(imagePreview)) {
-          payload.images.push(imagePreview);
-        }
-      }
-
       if (selectedRoom) {
         await axios.patch(
           `${ROOM_SERVICE_URL}/rooms/${selectedRoom._id}`,
           payload,
           {
             withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           },
         );
       } else {
         await axios.post(`${ROOM_SERVICE_URL}/rooms`, payload, {
           withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
-
       setIsModalOpen(false);
       setSelectedRoom(null);
       setExpandedEditRoom(null);
@@ -258,9 +579,7 @@ const getOccupantName = (userId) => {
     try {
       await axios.delete(`${ROOM_SERVICE_URL}/rooms/${id}`, {
         withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchRooms();
     } catch (err) {
@@ -298,9 +617,7 @@ const getOccupantName = (userId) => {
     setErrorMsg("");
   };
 
-  const handleView = (room) => {
-    setViewRoom(room);
-  };
+  const handleView = (room) => setViewRoom(room);
 
   const filteredRooms = rooms.filter((room) =>
     room.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -313,334 +630,27 @@ const getOccupantName = (userId) => {
     maintenance: rooms.filter((r) => r.status === "maintenance").length,
   };
 
-  // Shared form fields for both Add and Edit modals
-  const RoomFormFields = () => (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Basic Info */}
-      <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">
-          Room Information
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Room Number *
-            </label>
-            <input
-              required
-              type="text"
-              name="roomNumber"
-              value={formData.roomNumber}
-              onChange={handleInputChange}
-              placeholder="E.g. A-101"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            />
-
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Capacity *
-            </label>
-            <input
-              required
-              type="number"
-              min="1"
-              name="capacity"
-              value={formData.capacity}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            />
-
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Block
-            </label>
-            <input
-              type="text"
-              name="block"
-              value={formData.block}
-              onChange={handleInputChange}
-              placeholder="E.g. Block A"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            />
-
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Floor
-            </label>
-            <input
-              type="text"
-              name="floor"
-              value={formData.floor}
-              onChange={handleInputChange}
-              placeholder="E.g. Ground"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            />
-
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-medium transition-all"
-            >
-              <option value="available">Available</option>
-              <option value="full">Full</option>
-              <option value="maintenance">Maintenance</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Price (₹/month)
-            </label>
-            <input
-              type="number"
-              name="price"
-              min="0"
-              value={formData.price}
-              onChange={handleInputChange}
-              placeholder="Enter price"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            />
-
-          </div>
-        </div>
-      </div>
-
-      {/* Amenities */}
-      <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2">
-          Amenities
-        </label>
-        <input
-          type="text"
-          name="amenities"
-          value={amenitiesInput}
-          onChange={(e) => setAmenitiesInput(e.target.value)}
-          placeholder="E.g. AC, TV, WiFi, Attach Bath (comma separated)"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-        />
-
-      </div>
-
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2">
-          Room Description
-        </label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleInputChange}
-          placeholder="Add specific details about the room..."
-          rows={4}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm resize-vertical"
-        />
-
-      </div>
-
-      {/* Room Image */}
-      <div>
-        <label className="block text-sm font-bold text-gray-700 mb-2">
-          Room Image
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageSelect}
-            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-        </div>
-        {(imagePreview || formData.images.length > 0) && (
-          <div className="flex gap-2 mt-3 overflow-x-auto">
-            {imagePreview && (
-              <div className="relative w-20 h-20 shrink-0">
-                <img
-                  src={imagePreview}
-                  alt="preview"
-                  className="w-full h-full object-cover rounded-xl border border-gray-200"
-                />
-              </div>
-            )}
-            {formData.images
-              .filter((img) => img !== imagePreview)
-              .map((img, i) => (
-                <div key={i} className="relative w-20 h-20 shrink-0">
-                  <img
-                    src={img}
-                    alt="preview"
-                    className="w-full h-full object-cover rounded-xl border border-gray-200"
-                  />
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
-
-      {/* Occupants Section */}
-      <div className="border-t-2 border-gray-200 pt-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Users size={20} className="text-blue-600" />
-          Assign Occupants
-        </h3>
-
-        {/* Selected Occupants Pills */}
-        <div className="flex flex-wrap gap-2 mb-4 p-4 bg-blue-50 rounded-xl border border-blue-200 min-h-14">
-          {formData.occupants.length === 0 ? (
-            <span className="text-sm text-gray-500 italic">
-              No occupants assigned yet
-            </span>
-          ) : (
-            formData.occupants.map((occupant) => (
-              <div
-                key={occupant.userId}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:shadow-md transition-shadow"
-              >
-                <span>{getOccupantName(occupant.userId)}</span>
-                <button
-                  type="button"
-                  onClick={() => removeOccupant(occupant.userId)}
-                  className="hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Student Search Input - New */}
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-            Search Students
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              {availableStudentsCount} available
-            </span>
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Type student name or email (e.g. John Doe, john@example.com)"
-              value={studentSearchQuery}
-              onChange={(e) => setStudentSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-            />
-            <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            {studentSearchQuery && (
-              <button
-                type="button"
-                onClick={() => setStudentSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-          {studentSearchQuery && (
-            <p className="text-xs text-gray-500 mt-1">
-              Showing {displayedUsers.length} of {studentUsers.length} students
-            </p>
-          )}
-        </div>
-
-        {/* Occupants Grid Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-          {displayedUsers.length === 0 ? (
-            <div className="col-span-2 text-center py-8 text-gray-500">
-              {studentSearchQuery 
-                ? "No students match your search" 
-                : users.length === 0 
-                  ? "No students available to assign" 
-                  : "All students assigned or no students yet"
-              }
-              {studentSearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setStudentSearchQuery("")}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 underline"
-                >
-                  Clear search
-                </button>
-              )}
-            </div>
-          ) : (
-            displayedUsers.map((user) => {
-              const isSelected = formData.occupants.some(
-                (o) => o.userId === user._id,
-              );
-              return (
-                <button
-                  key={user._id}
-                  type="button"
-                  onClick={() => toggleOccupant(user._id)}
-                  className={`text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 border-2 ${
-                    isSelected
-                      ? "bg-blue-100 border-blue-400 shadow-sm"
-                      : "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50"
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      isSelected
-                        ? "bg-blue-600 border-blue-600"
-                        : "border-gray-400"
-                    }`}
-                  >
-                    {isSelected && (
-                      <span className="text-white text-xs">✓</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      {user.fullname?.firstName || ""}{" "}
-                      {user.fullname?.lastName || ""}
-                    </p>
-                    <p className="text-xs text-gray-600 truncate">
-                      {user.email} • {user.role || "Student"}
-                    </p>
-                  </div>
-                </button>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      {/* Footer Buttons */}
-      <div className="border-t-2 border-gray-200 pt-6 flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            setIsModalOpen(false);
-            setExpandedEditRoom(null);
-            setSelectedRoom(null);
-            resetForm();
-          }}
-          className="px-6 py-2.5 text-sm font-bold text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={submitLoading}
-          className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:shadow-lg transition-all disabled:opacity-70 shadow-md"
-        >
-          {submitLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <span>{selectedRoom ? "Save Details" : "Create Room"}</span>
-          )}
-        </button>
-      </div>
-    </form>
-  );
+  // Shared props for RoomFormFields
+  const sharedFormProps = {
+    formData,
+    handleInputChange,
+    amenitiesInput,
+    setAmenitiesInput,
+    imagePreview,
+    handleImageSelect,
+    toggleOccupant,
+    removeOccupant,
+    getOccupantName,
+    displayedUsers,
+    studentSearchQuery,
+    setStudentSearchQuery,
+    studentUsers,
+    availableStudentsCount,
+    submitLoading,
+    selectedRoom,
+    handleSubmit,
+    errorMsg,
+  };
 
   return (
     <div className="flex flex-col h-full bg-gray-50 p-6 min-h-screen">
@@ -701,7 +711,6 @@ const getOccupantName = (userId) => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm placeholder-gray-500"
             />
-
           </div>
         </div>
 
@@ -932,7 +941,7 @@ const getOccupantName = (userId) => {
         </div>
       </div>
 
-      {/* ── ADD NEW ROOM MODAL ── matches Edit Room style exactly */}
+      {/* ── ADD NEW ROOM MODAL ── */}
       {isModalOpen && !selectedRoom && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-t-3xl md:rounded-3xl w-full md:max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh] animate-in slide-in-from-bottom-5 md:zoom-in-95">
@@ -964,7 +973,14 @@ const getOccupantName = (userId) => {
                   {errorMsg}
                 </div>
               )}
-              <RoomFormFields />
+              <RoomFormFields
+                {...sharedFormProps}
+                onCancel={() => {
+                  setIsModalOpen(false);
+                  setSelectedRoom(null);
+                  resetForm();
+                }}
+              />
             </div>
           </div>
         </div>
@@ -1210,7 +1226,14 @@ const getOccupantName = (userId) => {
                   {errorMsg}
                 </div>
               )}
-              <RoomFormFields />
+              <RoomFormFields
+                {...sharedFormProps}
+                onCancel={() => {
+                  setExpandedEditRoom(null);
+                  setSelectedRoom(null);
+                  resetForm();
+                }}
+              />
             </div>
           </div>
         </div>
