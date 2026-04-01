@@ -47,6 +47,7 @@ const ManageRoom = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [viewRoom, setViewRoom] = useState(null);
   const [users, setUsers] = useState([]);
+  const [studentSearchQuery, setStudentSearchQuery] = useState(""); // New for student search
 
   useEffect(() => {
     fetchRooms();
@@ -154,11 +155,22 @@ const ManageRoom = () => {
     }));
   };
 
-  const getOccupantName = (userId) => {
+const getOccupantName = (userId) => {
     const user = users.find((u) => u._id === userId);
     if (!user) return "Unknown";
     return `${user.fullname?.firstName || ""} ${user.fullname?.lastName || ""}`.trim();
   };
+
+  // Filter students only and apply search
+  const studentUsers = users.filter((user) => user.role === "student");
+  const displayedUsers = studentUsers.filter((user) =>
+    studentSearchQuery === ""
+      ? true
+      : `${user.fullname?.firstName || ""} ${user.fullname?.lastName || ""} ${user.email || ""}`
+          .toLowerCase()
+          .includes(studentSearchQuery.toLowerCase())
+  );
+  const availableStudentsCount = studentUsers.length - formData.occupants.length;
 
   const resetForm = () => {
     setFormData({
@@ -504,14 +516,62 @@ const ManageRoom = () => {
           )}
         </div>
 
+        {/* Student Search Input - New */}
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            Search Students
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              {availableStudentsCount} available
+            </span>
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Type student name or email (e.g. John Doe, john@example.com)"
+              value={studentSearchQuery}
+              onChange={(e) => setStudentSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+            />
+            <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            {studentSearchQuery && (
+              <button
+                type="button"
+                onClick={() => setStudentSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          {studentSearchQuery && (
+            <p className="text-xs text-gray-500 mt-1">
+              Showing {displayedUsers.length} of {studentUsers.length} students
+            </p>
+          )}
+        </div>
+
         {/* Occupants Grid Selection */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-          {users.length === 0 ? (
+          {displayedUsers.length === 0 ? (
             <div className="col-span-2 text-center py-8 text-gray-500">
-              No users available to assign
+              {studentSearchQuery 
+                ? "No students match your search" 
+                : users.length === 0 
+                  ? "No students available to assign" 
+                  : "All students assigned or no students yet"
+              }
+              {studentSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setStudentSearchQuery("")}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 underline"
+                >
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
-            users.map((user) => {
+            displayedUsers.map((user) => {
               const isSelected = formData.occupants.some(
                 (o) => o.userId === user._id,
               );
@@ -543,7 +603,7 @@ const ManageRoom = () => {
                       {user.fullname?.lastName || ""}
                     </p>
                     <p className="text-xs text-gray-600 truncate">
-                      {user.email}
+                      {user.email} • {user.role || "Student"}
                     </p>
                   </div>
                 </button>

@@ -9,6 +9,8 @@ import {
   Info,
   X,
   Loader2,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 import { staffRoomApi, complaintApi } from "../../lib/api.js";
 
@@ -145,7 +147,16 @@ const DashboardHome = () => {
     relevancePercentage: 0,
   });
   const [formError, setFormError] = useState("");
+  const [showAllNotices, setShowAllNotices] = useState(false);
+  const [editingNoticeId, setEditingNoticeId] = useState(null);
+  const [editingForm, setEditingForm] = useState({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteNoticeId, setDeleteNoticeId] = useState(null);
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+  const [activitiesError, setActivitiesError] = useState(null);
   const { toasts, addToast, removeToast } = useToast();
+
 
   const typeOptions = ["general", "event", "maintenance", "academic"];
 
@@ -153,7 +164,7 @@ const DashboardHome = () => {
     const fetchNotices = async () => {
       setLoadingNotices(true);
       try {
-        const res = await staffRoomApi.get("/notices?limit=8");
+        const res = await staffRoomApi.get("/notices?limit=10");
         setNotices(res.data?.notices ?? []);
       } catch (err) {
         console.error("Failed to load notices", err);
@@ -170,11 +181,14 @@ const DashboardHome = () => {
     async function fetchStats() {
       setLoading(true);
       setError(null);
+      setLoadingActivities(true);
+      setActivitiesError(null);
 
       try {
-        const [roomStatsResp, complaintStatsResp] = await Promise.all([
+        const [roomStatsResp, complaintStatsResp, activitiesResp] = await Promise.all([
           staffRoomApi.get("/stats"),
           complaintApi.get("/staff/complaints/stats"),
+          staffRoomApi.get("/activities"),
         ]);
 
         const roomStats = roomStatsResp?.data ?? {};
@@ -186,13 +200,20 @@ const DashboardHome = () => {
           newApplications: roomStats.newApplications ?? 0,
           activeComplaints: complaintStats.activeComplaints ?? 0,
         });
+
+        setActivities(activitiesResp.data?.activities ?? []);
       } catch (err) {
-        console.error("Error fetching staff dashboard stats", err);
-        setError("Unable to load dashboard stats. Please refresh.");
+        console.error("Error fetching dashboard data", err);
+        if (err.response?.status !== 404) {
+          setError("Unable to load dashboard data. Please refresh.");
+        }
+        setActivitiesError(err.response?.data?.message || "Failed to load activities");
       } finally {
         setLoading(false);
+        setLoadingActivities(false);
       }
     }
+
 
     fetchStats();
     fetchNotices();
@@ -249,6 +270,64 @@ const DashboardHome = () => {
     }
   };
 
+  const handleEditNotice = async (noticeId) => {
+    const formData = editingForm[noticeId];
+    if (!formData.title.trim() || !formData.description.trim()) {
+      addToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Title and description are required",
+      });
+      return;
+    }
+    if (
+      Number(formData.relevancePercentage) < 0 ||
+      Number(formData.relevancePercentage) > 100
+    ) {
+      addToast({
+        type: "error",
+        title: "Validation Error",
+        message: "Relevance must be 0-100",
+      });
+      return;
+    }
+
+    try {
+      const res = await staffRoomApi.put(`/notices/${noticeId}`, formData);
+      addToast({
+        type: "success",
+        title: "Updated",
+        message: "Notice updated successfully",
+      });
+      setNotices((prev) =>
+        prev.map((n) => (n._id === noticeId ? res.data.notice : n)),
+      );
+      setEditingNoticeId(null);
+      setEditingForm({});
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to update notice";
+      addToast({ type: "error", title: "Update failed", message });
+    }
+  };
+
+  const handleDeleteNotice = async () => {
+    const noticeId = deleteNoticeId;
+    try {
+      await staffRoomApi.delete(`/notices/${noticeId}`);
+      addToast({
+        type: "success",
+        title: "Deleted",
+        message: "Notice deleted successfully",
+      });
+      setNotices((prev) => prev.filter((n) => n._id !== noticeId));
+      setShowDeleteConfirm(false);
+      setDeleteNoticeId(null);
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to delete notice";
+      addToast({ type: "error", title: "Delete failed", message });
+    }
+  };
+
   const stats = [
     {
       title: "Total Students",
@@ -294,18 +373,6 @@ const DashboardHome = () => {
     <div>
       <Toast toasts={toasts} removeToast={removeToast} />
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Overview</h2>
-          <p className="text-sm text-gray-500 mt-1 font-medium">
-            Welcome back, Staff member! Here is today's summary.
-          </p>
-        </div>
-        <button className="bg-[#1E3A8A] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-900 transition-colors shadow-sm">
-          Generate Report
-        </button>
-      </div>
-
       {error && (
         <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200">
           {error}
@@ -344,25 +411,43 @@ const DashboardHome = () => {
             Recent Activities
           </h3>
           <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900">
-                    Student Room Assignment
-                  </h4>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Room 304 assigned to Rahul Khanna.
-                  </p>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase mt-2 block">
-                    2 hours ago
-                  </span>
-                </div>
+            {loadingActivities ? (
+              <div className="flex items-center gap-3 text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Loading activities...</span>
               </div>
-            ))}
+            ) : activitiesError ? (
+              <p className="text-sm text-orange-600">{activitiesError}</p>
+            ) : activities.length === 0 ? (
+              <p className="text-sm text-gray-500 italic">No recent activities</p>
+            ) : (
+              activities.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-4">
+                  <div className={`w-10 h-10 rounded-full bg-${activity.iconColor}-50 flex items-center justify-center shrink-0`}>
+                    <div className={`w-2.5 h-2.5 rounded-full bg-${activity.iconColor}-500`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-base font-bold text-gray-900 truncate">
+                      {activity.title}
+                    </h4>
+                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                      {activity.description}
+                    </p>
+                    <span className="text-xs text-gray-400 font-bold uppercase mt-2 block">
+                      {new Date(activity.timestamp).toLocaleString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+
+                  </div>
+                </div>
+              ))
+            )}
           </div>
+
         </div>
 
         <div className="bg-white p-8 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] text-gray-900 relative overflow-hidden">
@@ -472,9 +557,19 @@ const DashboardHome = () => {
           )}
 
           <div className="mt-8">
-            <h4 className="text-lg font-semibold mb-4">
-              Latest Published Notices
-            </h4>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold mb-4">
+                Latest Published Notices
+              </h4>
+              {formattedNotices.length > 3 ? (
+                <button
+                  onClick={() => setShowAllNotices(true)}
+                  className="text-sm font-bold text-blue-600 hover:text-blue-800 transition cursor-pointer"
+                >
+                  View All
+                </button>
+              ) : null}
+            </div>
             {loadingNotices ? (
               <p className="text-sm text-gray-500">Loading notices...</p>
             ) : formattedNotices.length === 0 ? (
@@ -483,48 +578,463 @@ const DashboardHome = () => {
               </p>
             ) : (
               <div className="space-y-4">
-                {formattedNotices.slice(0, 4).map((notice, idx) => {
+                {formattedNotices.slice(0, 3).map((notice, idx) => {
                   const style = notice.typeStyle;
+                  const isEditing = editingNoticeId === notice._id;
                   return (
                     <div
-                      key={idx}
-                      className={`border ${style.card} rounded-2xl p-3`}
+                      key={notice._id || idx}
+                      className={`border ${style.card} rounded-2xl p-4 relative hover:shadow-lg transition-all group ${isEditing ? "ring-2 ring-blue-300 ring-opacity-50" : ""}`}
                     >
-                      <div className="flex justify-between items-center mb-2">
-                        <div>
-                          <h5 className={`font-bold ${style.title}`}>
-                            {notice.title}
-                          </h5>
-                          <p className="text-xs text-gray-500">
-                            {notice.createdAtFormatted}
-                          </p>
+                      {isEditing ? (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={editingForm[notice._id]?.title || ""}
+                            onChange={(e) =>
+                              setEditingForm((prev) => ({
+                                ...prev,
+                                [notice._id]: {
+                                  ...(prev[notice._id] || {}),
+                                  title: e.target.value,
+                                },
+                              }))
+                            }
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg font-bold"
+                            placeholder="Title"
+                          />
+                          <select
+                            value={editingForm[notice._id]?.type || notice.type}
+                            onChange={(e) =>
+                              setEditingForm((prev) => ({
+                                ...prev,
+                                [notice._id]: {
+                                  ...(prev[notice._id] || {}),
+                                  type: e.target.value,
+                                },
+                              }))
+                            }
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          >
+                            {typeOptions.map((t) => (
+                              <option key={t} value={t}>
+                                {t.charAt(0).toUpperCase() + t.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                          <textarea
+                            rows={2}
+                            value={editingForm[notice._id]?.description || ""}
+                            onChange={(e) =>
+                              setEditingForm((prev) => ({
+                                ...prev,
+                                [notice._id]: {
+                                  ...(prev[notice._id] || {}),
+                                  description: e.target.value,
+                                },
+                              }))
+                            }
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                            placeholder="Description"
+                          />
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={
+                                editingForm[notice._id]?.relevancePercentage ||
+                                notice.relevancePercentage ||
+                                0
+                              }
+                              onChange={(e) =>
+                                setEditingForm((prev) => ({
+                                  ...prev,
+                                  [notice._id]: {
+                                    ...(prev[notice._id] || {}),
+                                    relevancePercentage: Number(e.target.value),
+                                  },
+                                }))
+                              }
+                              className="w-20 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-500">%</span>
+                            <div className="flex gap-1 ml-auto">
+                              <button
+                                onClick={() => handleEditNotice(notice._id)}
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              >
+                                <CheckCircle2 size={18} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingNoticeId(null);
+                                  setEditingForm((prev) => {
+                                    const newForm = { ...prev };
+                                    delete newForm[notice._id];
+                                    return newForm;
+                                  });
+                                }}
+                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                              >
+                                <X size={18} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-[11px] font-bold uppercase text-gray-500">
-                          {notice.type}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700 mb-2 line-clamp-2">
-                        {notice.description}
-                      </p>
-                      <div className="h-2 w-full rounded-full overflow-hidden">
-                        <div
-                          className={`${style.progress} h-full`}
-                          style={{
-                            width: `${Math.min(100, Math.max(0, notice.relevancePercentage || 0))}%`,
-                          }}
-                        />
-                      </div>
-                      <p className="text-[11px] text-gray-500 mt-1">
-                        Relevance: {notice.relevancePercentage}%
-                      </p>
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h5
+                                className={`font-bold ${style.title} truncate`}
+                              >
+                                {notice.title}
+                              </h5>
+                              <p className="text-xs text-gray-500 truncate">
+                                {notice.createdAtFormatted}
+                              </p>
+                            </div>
+                            <span className="text-[11px] font-bold uppercase text-gray-500 ml-2 whitespace-nowrap flex-shrink-0">
+                              {notice.type}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-3 line-clamp-2 leading-relaxed">
+                            {notice.description}
+                          </p>
+                          <div className="h-2 w-full rounded-full overflow-hidden bg-gray-200">
+                            <div
+                              className={`${style.progress} h-full transition-all duration-300`}
+                              style={{
+                                width: `${Math.min(100, Math.max(0, notice.relevancePercentage || 0))}%`,
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-[11px] text-gray-500">
+                              Relevance: {notice.relevancePercentage}%
+                            </span>
+                            <div className="flex gap-1 opacity-100 transition-all p-1 -m-1">
+                              <button
+                                onClick={() => {
+                                  setEditingNoticeId(notice._id);
+                                  setEditingForm((prev) => ({
+                                    ...prev,
+                                    [notice._id]: {
+                                      title: notice.title,
+                                      type: notice.type,
+                                      description: notice.description,
+                                      relevancePercentage:
+                                        notice.relevancePercentage || 0,
+                                    },
+                                  }));
+                                }}
+                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all hover:scale-105"
+                                title="Edit"
+                              >
+                                <Edit3 size={16} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeleteNoticeId(notice._id);
+                                  setShowDeleteConfirm(true);
+                                }}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all hover:scale-105"
+                                title="Delete"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}
+
+                {showAllNotices && (
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                      onClick={() => setShowAllNotices(false)}
+                    />
+                    <div className="fixed inset-0 z-50 flex items-start justify-center p-6 pt-10 overflow-y-auto bg-black/40 backdrop-blur-sm">
+                      <div className="bg-white rounded-3xl max-w-7xl min-h-[90vh] w-full mx-4 shadow-2xl overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                          <h3 className="text-xl font-bold text-gray-900">
+                            All Published Notices
+                          </h3>
+                          <button
+                            onClick={() => setShowAllNotices(false)}
+                            className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                          >
+                            <X className="w-5 h-5 text-gray-500" />
+                          </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="max-h-[70vh] overflow-y-auto p-4 space-y-4">
+                          {formattedNotices.map((notice, idx) => {
+                            const style = notice.typeStyle;
+                            const isEditing = editingNoticeId === notice._id;
+                            return (
+                              <div
+                                key={notice._id || idx}
+                                className={`border ${style.card} rounded-2xl p-4 hover:shadow-lg transition-all group ${isEditing ? "ring-2 ring-blue-300 ring-opacity-50" : ""}`}
+                              >
+                                {isEditing ? (
+                                  <div className="space-y-3">
+                                    <input
+                                      type="text"
+                                      value={
+                                        editingForm[notice._id]?.title || ""
+                                      }
+                                      onChange={(e) =>
+                                        setEditingForm((prev) => ({
+                                          ...prev,
+                                          [notice._id]: {
+                                            ...(prev[notice._id] || {}),
+                                            title: e.target.value,
+                                          },
+                                        }))
+                                      }
+                                      className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg font-bold"
+                                      placeholder="Title"
+                                    />
+                                    <select
+                                      value={
+                                        editingForm[notice._id]?.type ||
+                                        notice.type
+                                      }
+                                      onChange={(e) =>
+                                        setEditingForm((prev) => ({
+                                          ...prev,
+                                          [notice._id]: {
+                                            ...(prev[notice._id] || {}),
+                                            type: e.target.value,
+                                          },
+                                        }))
+                                      }
+                                      className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    >
+                                      {typeOptions.map((t) => (
+                                        <option key={t} value={t}>
+                                          {t.charAt(0).toUpperCase() +
+                                            t.slice(1)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <textarea
+                                      rows={3}
+                                      value={
+                                        editingForm[notice._id]?.description ||
+                                        ""
+                                      }
+                                      onChange={(e) =>
+                                        setEditingForm((prev) => ({
+                                          ...prev,
+                                          [notice._id]: {
+                                            ...(prev[notice._id] || {}),
+                                            description: e.target.value,
+                                          },
+                                        }))
+                                      }
+                                      className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                                      placeholder="Description"
+                                    />
+                                    <div className="flex gap-2 items-center">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={
+                                          editingForm[notice._id]
+                                            ?.relevancePercentage ||
+                                          notice.relevancePercentage ||
+                                          0
+                                        }
+                                        onChange={(e) =>
+                                          setEditingForm((prev) => ({
+                                            ...prev,
+                                            [notice._id]: {
+                                              ...(prev[notice._id] || {}),
+                                              relevancePercentage: Number(
+                                                e.target.value,
+                                              ),
+                                            },
+                                          }))
+                                        }
+                                        className="w-20 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                      />
+                                      <span className="text-sm text-gray-500">
+                                        %
+                                      </span>
+                                      <div className="flex gap-1 ml-auto">
+                                        <button
+                                          onClick={() =>
+                                            handleEditNotice(notice._id)
+                                          }
+                                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                        >
+                                          <CheckCircle2 size={18} />
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setEditingNoticeId(null);
+                                            setEditingForm((prev) => {
+                                              const newForm = { ...prev };
+                                              delete newForm[notice._id];
+                                              return newForm;
+                                            });
+                                          }}
+                                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                                        >
+                                          <X size={18} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex justify-between items-start mb-3">
+                                      <div className="flex-1 min-w-0">
+                                        <h5
+                                          className={`font-bold ${style.title} text-lg truncate`}
+                                        >
+                                          {notice.title}
+                                        </h5>
+                                        <p className="text-sm text-gray-500 truncate">
+                                          {notice.createdAtFormatted}
+                                        </p>
+                                      </div>
+                                      <span className="text-xs font-bold uppercase text-gray-500 px-2 py-1 bg-gray-100 rounded-full ml-2 whitespace-nowrap flex-shrink-0">
+                                        {notice.type}
+                                      </span>
+                                    </div>
+                                    <p className="text-gray-700 mb-3 line-clamp-3 leading-relaxed">
+                                      {notice.description}
+                                    </p>
+                                    <div className="h-2 rounded-full overflow-hidden bg-gray-200">
+                                      <div
+                                        className={`${style.progress} h-full transition-all duration-300`}
+                                        style={{
+                                          width: `${Math.min(100, Math.max(0, notice.relevancePercentage || 0))}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    <div className="flex items-center justify-between mt-2">
+                                      <span className="text-xs text-gray-500">
+                                        Relevance: {notice.relevancePercentage}%
+                                      </span>
+                                      <div className="flex gap-1 opacity-100 transition-all p-1 -m-1">
+                                        <button
+                                          onClick={() => {
+                                            setEditingNoticeId(notice._id);
+                                            setEditingForm((prev) => ({
+                                              ...prev,
+                                              [notice._id]: {
+                                                title: notice.title,
+                                                type: notice.type,
+                                                description: notice.description,
+                                                relevancePercentage:
+                                                  notice.relevancePercentage ||
+                                                  0,
+                                              },
+                                            }));
+                                          }}
+                                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all hover:scale-105"
+                                          title="Edit"
+                                        >
+                                          <Edit3 size={16} />
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            setDeleteNoticeId(notice._id);
+                                            setShowDeleteConfirm(true);
+                                          }}
+                                          className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all hover:scale-105"
+                                          title="Delete"
+                                        >
+                                          <Trash2 size={16} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {formattedNotices.length === 0 && (
+                            <p className="text-center text-gray-500 py-8">
+                              No notices available.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            onClick={() => {
+              setShowDeleteConfirm(false);
+              setDeleteNoticeId(null);
+            }}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-rose-50 to-red-50 border-b border-red-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <Trash2 className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Delete Notice
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      This action cannot be undone
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-700 mb-6">
+                  Are you sure you want to delete this notice? All data will be
+                  permanently removed.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setDeleteNoticeId(null);
+                    }}
+                    className="flex-1 py-2 px-4 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteNotice}
+                    className="flex-1 py-2 px-4 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors active:scale-95"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

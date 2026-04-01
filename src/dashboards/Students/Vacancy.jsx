@@ -53,9 +53,7 @@ const Vacancy = () => {
 
   const fetchMyApplications = async () => {
     try {
-      const res = await studentRoomApi.get("/applications", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await studentRoomApi.get("/applications");
       setMyApplications(res.data.applications || []);
     } catch (err) {
       console.error("Failed to fetch applications", err);
@@ -72,11 +70,7 @@ const Vacancy = () => {
   const fetchAvailableRooms = async () => {
     try {
       setLoading(true);
-      const res = await studentRoomApi.get("/rooms", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await studentRoomApi.get("/rooms");
       const availableRooms = (res.data.rooms || []).filter(
         (r) => r.vacancy > 0,
       );
@@ -209,24 +203,16 @@ const Vacancy = () => {
     }
     try {
       setSubmitting(true);
-      await studentRoomApi.post(
-        "/applications",
-        {
-          roomId: selectedRoom._id,
-          studentDetails: {
-            name: formData.name,
-            rollNo: formData.rollNo,
-            courseStream: formData.courseStream,
-            mobile: formData.mobile,
-          },
-          message: formData.message || "I would like to apply for this room.",
+      await studentRoomApi.post("/applications", {
+        roomId: selectedRoom._id,
+        studentDetails: {
+          name: formData.name,
+          rollNo: formData.rollNo,
+          courseStream: formData.courseStream,
+          mobile: formData.mobile,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+        message: formData.message || "I would like to apply for this room.",
+      });
       setNotification({
         open: true,
         type: "success",
@@ -255,11 +241,7 @@ const Vacancy = () => {
 
   const fetchRoomDetail = async (id) => {
     try {
-      const res = await studentRoomApi.get(`/rooms/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await studentRoomApi.get(`/rooms/${id}`);
       const data = res.data.room ? res.data.room : res.data;
       setViewRoom(data);
     } catch (err) {
