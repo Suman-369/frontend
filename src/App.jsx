@@ -61,6 +61,7 @@ const App = () => {
                 <Route path="manage-rooms" element={<StaffManageRoom />} />
                 <Route path="reports" element={<StaffReports />} />
                 <Route path="applications" element={<StaffApplication />} />
+                
               </Route>
             </Route>
 
