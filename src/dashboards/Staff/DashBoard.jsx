@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
-import api from '../../lib/api';
+import { authApi } from "../../lib/api.js"
+import StaffBlockWarning from '../../components/StaffBlockWarning.jsx';
 import {
   LayoutDashboard,
   DoorOpen,
   AlertCircle,
   FileText,
   ClipboardList,
+  CheckSquare,
   User,
   Settings,
   LogOut,
@@ -23,17 +25,46 @@ const DashBoard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [checkingBlocked, setCheckingBlocked] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    checkBlockedStatus();
+  }, []);
+
+  const checkBlockedStatus = async () => {
+    try {
+      setCheckingBlocked(true);
+      const response = await authApi.get('/me');
+      setIsBlocked(response.data.user.isBlocked);
+    } catch (err) {
+      console.error('Check blocked error:', err);
+      // On 403 blocked, show warning but keep login state
+      if (err.response?.status === 403) {
+        setIsBlocked(true);
+      } else if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('role');
+        navigate('/login');
+        return;
+      }
+    } finally {
+      setCheckingBlocked(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
-      await api.post('/logout');
+      await authApi.post('/logout');
     } catch (e) {
       console.error('Logout error', e);
     } finally {
       localStorage.removeItem('user');
       localStorage.removeItem('role');
+      localStorage.removeItem('token');
       navigate('/');
     }
   };
@@ -47,6 +78,7 @@ const DashBoard = () => {
     { name: 'Manage Rooms', path: '/staff/manage-rooms', icon: DoorOpen },
     { name: 'Reports', path: '/staff/reports', icon: FileText },
     { name: 'Applications', path: '/staff/applications', icon: ClipboardList },
+    { name: 'Tasks', path: '/staff/tasks', icon: CheckSquare },
   ];
 
   const settingLinks = [
@@ -199,8 +231,16 @@ const DashBoard = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 pt-4">
+        <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10 pt-4 relative">
           <Outlet />
+          {isBlocked && !checkingBlocked && (
+            <StaffBlockWarning onLogout={handleLogout} />
+          )}
+          {checkingBlocked && (
+            <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A8A]"></div>
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -19,6 +19,7 @@ import StaffComplaintDetail from "./dashboards/Staff/ComplaintDetail.jsx";
 import StaffManageRoom from "./dashboards/Staff/ManageRoom.jsx";
 import StaffReports from "./dashboards/Staff/Reports.jsx";
 import StaffApplication from "./dashboards/Staff/Application.jsx";
+import StaffMyTasks from "./dashboards/Staff/MyTasks.jsx";
 
 // Admin Dashboard Imports
 import AdminDashboard from "./dashboards/admin/Dashboard.jsx";
@@ -61,7 +62,7 @@ const App = () => {
                 <Route path="manage-rooms" element={<StaffManageRoom />} />
                 <Route path="reports" element={<StaffReports />} />
                 <Route path="applications" element={<StaffApplication />} />
-                
+                <Route path="tasks" element={<StaffMyTasks />} />
               </Route>
             </Route>
 

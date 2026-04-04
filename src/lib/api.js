@@ -44,9 +44,10 @@ const authApi = createApiInstance("http://localhost:3000/api/auth");
 const staffRoomApi = createApiInstance("http://localhost:3002/api/staff");
 const studentRoomApi = createApiInstance("http://localhost:3002/api/student");
 const complaintApi = createApiInstance("http://localhost:3003/api");
+const reportApi = createApiInstance("http://localhost:3004/api/report");
 
 // Keep roomApi alias for existing staff code (backward compatibility)
 const roomApi = staffRoomApi;
 
-export { authApi, roomApi, staffRoomApi, studentRoomApi, complaintApi };
+export { authApi, roomApi, staffRoomApi, studentRoomApi, complaintApi , reportApi };
 export default authApi;
