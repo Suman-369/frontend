@@ -1,5 +1,8 @@
 import axios from "axios";
 
+
+
+
 const createApiInstance = (baseURL) => {
   const instance = axios.create({
     baseURL,
@@ -40,11 +43,11 @@ const createApiInstance = (baseURL) => {
   return instance;
 };
 
-const authApi = createApiInstance("http://localhost:3000/api/auth");
-const staffRoomApi = createApiInstance("http://localhost:3002/api/staff");
-const studentRoomApi = createApiInstance("http://localhost:3002/api/student");
-const complaintApi = createApiInstance("http://localhost:3003/api");
-const reportApi = createApiInstance("http://localhost:3004/api/report");
+const authApi = createApiInstance(import.meta.env.VITE_AUTH_API_URL || "http://localhost:3000/api/auth");
+const staffRoomApi = createApiInstance(import.meta.env.VITE_ROOM_API_URL || "http://localhost:3002/api/staff");
+const studentRoomApi = createApiInstance(import.meta.env.VITE_STUDENT_ROOM_API_URL || "http://localhost:3002/api/student");
+const complaintApi = createApiInstance(import.meta.env.VITE_COMPLAINT_API_URL || "http://localhost:3003/api");
+const reportApi = createApiInstance(import.meta.env.VITE_REPORT_API_URL || "http://localhost:3004/api/report");
 
 // Keep roomApi alias for existing staff code (backward compatibility)
 const roomApi = staffRoomApi;
