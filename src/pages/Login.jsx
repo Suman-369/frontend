@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import hostelHero from "../assets/hostel.jpg";
 import api from "../lib/api";
 
+const BASE_URL = import.meta.env.VITE_AUTH_API_URL;
+
 const primary =
   "bg-[#5D3891] hover:bg-[#4d2f7a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5D3891]";
 
@@ -97,7 +99,7 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:3000/api/auth/google";
+    window.location.href = `${BASE_URL}/google`;
   };
 
   return (
