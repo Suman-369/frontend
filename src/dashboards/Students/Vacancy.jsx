@@ -475,13 +475,13 @@ const Vacancy = () => {
 
       {/* Apply Modal */}
       {applyOpen && selectedRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in zoom-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[85vh] mx-4 shadow-2xl overflow-hidden">
-            <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6 rounded-t-3xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[calc(100vh-2rem)] sm:max-h-[85vh] shadow-2xl flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 sm:p-6 rounded-t-3xl shrink-0 z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold">Apply for Room</h2>
-                  <p className="text-emerald-100">
+                  <h2 className="text-xl sm:text-2xl font-bold">Apply for Room</h2>
+                  <p className="text-emerald-100 text-sm sm:text-base">
                     Room {selectedRoom.roomNumber} - Block {selectedRoom.block}
                   </p>
                 </div>
@@ -493,13 +493,15 @@ const Vacancy = () => {
                 </button>
               </div>
             </div>
-            <div className="p-6 pb-8">
+            
+            {/* Scrollable Form Body */}
+            <div className="p-4 sm:p-6 pb-24 sm:pb-8 overflow-y-auto flex-1 min-h-0 w-full">
               <form
                 onSubmit={handleSubmitForm}
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"
               >
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                     <User size={18} className="text-indigo-500" />
                     Full Name <span className="text-red-500">*</span>
                   </label>
@@ -509,12 +511,12 @@ const Vacancy = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
+                    className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-12 sm:h-14 text-sm sm:text-base"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                     <Hash size={18} className="text-indigo-500" />
                     Roll Number <span className="text-red-500">*</span>
                   </label>
@@ -524,12 +526,12 @@ const Vacancy = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, rollNo: e.target.value })
                     }
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
+                    className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-12 sm:h-14 text-sm sm:text-base"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                     <Users size={18} className="text-indigo-500" />
                     Course / Stream <span className="text-red-500">*</span>
                   </label>
@@ -539,13 +541,13 @@ const Vacancy = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, courseStream: e.target.value })
                     }
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
+                    className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-12 sm:h-14 text-sm sm:text-base"
                     placeholder="e.g., B.Tech Computer Science"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                     <Phone size={18} className="text-indigo-500" />
                     Mobile Number <span className="text-red-500">*</span>
                   </label>
@@ -555,38 +557,38 @@ const Vacancy = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, mobile: e.target.value })
                     }
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-14"
+                    className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all h-12 sm:h-14 text-sm sm:text-base"
                     placeholder="+91 9876543210"
                     required
                   />
                 </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 sm:mb-3 flex items-center gap-2">
                     <MessageSquare size={18} className="text-indigo-500" />
                     Message (Optional)
                   </label>
                   <textarea
-                    rows="4"
+                    rows="3"
                     value={formData.message}
                     onChange={(e) =>
                       setFormData({ ...formData, message: e.target.value })
                     }
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-vertical"
+                    className="w-full p-3 sm:p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-vertical text-sm sm:text-base"
                     placeholder="Any additional information about your application..."
                   />
                 </div>
-                <div className="md:col-span-2 flex gap-4 pt-4">
+                <div className="sm:col-span-2 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4 mt-2">
                   <button
                     type="button"
                     onClick={handleCloseApply}
-                    className="flex-1 px-8 py-4 text-lg font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-2xl hover:bg-gray-50 transition-all shadow-lg h-14 flex items-center justify-center"
+                    className="flex-1 px-4 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold text-gray-700 bg-white border-2 border-gray-200 rounded-xl sm:rounded-2xl hover:bg-gray-50 transition-all shadow-sm sm:shadow-lg h-12 sm:h-14 flex items-center justify-center"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 px-8 py-4 text-lg font-bold text-white bg-emerald-600 rounded-2xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl flex items-center justify-center gap-2 h-14"
+                    className="flex-1 px-4 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold text-white bg-emerald-600 rounded-xl sm:rounded-2xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md sm:shadow-xl flex items-center justify-center gap-2 h-12 sm:h-14"
                   >
                     {submitting ? (
                       <>

@@ -12,7 +12,7 @@ import {
   MoreVertical,
   Activity,
 } from "lucide-react";
-import { studentRoomApi } from "../../lib/api.js";
+import { studentRoomApi, authApi } from "../../lib/api.js";
 
 const NOTICE_COLORS = {
   general: {
@@ -50,6 +50,9 @@ const DashboardHome = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAllNotices, setShowAllNotices] = useState(false);
+  const [staffList, setStaffList] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(true);
+  const [staffError, setStaffError] = useState("");
 
   useEffect(() => {
     const fetchNotices = async () => {
@@ -67,6 +70,24 @@ const DashboardHome = () => {
     };
 
     fetchNotices();
+  }, []);
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      setStaffLoading(true);
+      setStaffError("");
+      try {
+        const res = await authApi.get("/staff-directory");
+        setStaffList(res.data?.users || []);
+      } catch (err) {
+        console.error("Unable to fetch staff", err);
+        setStaffError("Unable to load staff directory. Please refresh.");
+      } finally {
+        setStaffLoading(false);
+      }
+    };
+
+    fetchStaff();
   }, []);
 
   const displayedNotices = useMemo(() => {
@@ -88,6 +109,101 @@ const DashboardHome = () => {
       };
     });
   }, [notices, showAllNotices]);
+
+  const renderStaffRows = () => {
+    if (staffLoading) {
+      return (
+        <tr>
+          <td colSpan={5} className="py-12">
+            <div className="animate-pulse space-y-3">
+              {Array(4)
+                .fill(null)
+                .map((_, i) => (
+                  <div key={i} className="h-12 bg-gray-200 rounded-2xl mx-2"></div>
+                ))}
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
+    if (staffError) {
+      return (
+        <tr>
+          <td colSpan={5} className="py-12 text-center">
+            <p className="text-sm text-rose-600">{staffError}</p>
+          </td>
+        </tr>
+      );
+    }
+
+    if (staffList.length === 0) {
+      return (
+        <tr>
+          <td colSpan={5} className="py-12 text-center">
+            <p className="text-sm text-gray-500">No staff available</p>
+          </td>
+        </tr>
+      );
+    }
+
+    return staffList.map((user, idx) => {
+      const person = {
+        name: `${user.fullname.firstName} ${user.fullname.lastName}`,
+        role: user.role,
+        stat1: user.location || "N/A",
+        stat2: user.availabilityStatus === "active" ? "Active" : "Inactive",
+        avatar: `https://i.pravatar.cc/150?u=${encodeURIComponent(user.email || user._id.toString())}`,
+        id: user._id,
+      };
+      return (
+        <tr key={person.id || idx} className="group cursor-pointer">
+          <td className="bg-white py-4 pl-5 rounded-l-2xl shadow-sm border-y border-l border-white group-hover:border-sky-100 group-hover:shadow-md transition-all">
+            <div className="flex items-center gap-4">
+              <img
+                src={person.avatar}
+                alt={person.name}
+                className="w-11 h-11 rounded-full object-cover group-hover:scale-105 transition-transform shadow-sm"
+              />
+              <div>
+                <h4 className="font-bold text-gray-900 group-hover:text-sky-700 transition-colors">
+                  {person.name}
+                </h4>
+              </div>
+            </div>
+          </td>
+          <td className="bg-white py-4 shadow-sm border-y border-white group-hover:border-sky-100 transition-all">
+            <span className="text-sm font-semibold text-gray-500">
+              {person.role}
+            </span>
+          </td>
+          <td className="bg-white py-4 shadow-sm border-y border-white group-hover:border-sky-100 transition-all">
+            <span className="text-sm font-semibold text-gray-500">
+              {person.stat1}
+            </span>
+          </td>
+          <td className="bg-white py-4 shadow-sm border-y border-white group-hover:border-sky-100 transition-all">
+            <span className="text-sm font-semibold text-gray-500">
+              {person.stat2}
+            </span>
+          </td>
+          <td className="bg-white py-4 pr-5 rounded-r-2xl shadow-sm border-y border-r border-white group-hover:border-sky-100 transition-all text-right">
+            <div className="flex justify-end items-center gap-3">
+              <button className="bg-[#FFB800] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-[0_4px_10px_rgba(255,184,0,0.25)] hover:bg-yellow-500 hover:shadow-[0_6px_14px_rgba(255,184,0,0.3)] transition-all active:scale-95">
+                Reach Out
+              </button>
+              <button className="p-2 border-2 border-gray-100 rounded-xl text-gray-400 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-95">
+                <Mail className="w-[18px] h-[18px]" />
+              </button>
+              <button className="p-2 text-gray-400 hover:text-gray-800 transition-colors">
+                <MoreVertical className="w-5 h-5" />
+              </button>
+            </div>
+          </td>
+        </tr>
+      );
+    });
+  };
 
   return (
     <>
@@ -280,83 +396,7 @@ const DashboardHome = () => {
           </div>
           <div className="overflow-x-auto scrollbar-none">
             <table className="w-full text-left border-separate border-spacing-y-3 min-w-[600px]">
-              <tbody>
-                {[
-                  {
-                    name: "Dr. A. Sharma",
-                    role: "Chief Warden",
-                    stat1: "Block A",
-                    stat2: "Mon-Fri",
-                    avatar: "https://i.pravatar.cc/150?img=11",
-                  },
-                  {
-                    name: "Ravi Kumar",
-                    role: "Security Head",
-                    stat1: "Main Gate",
-                    stat2: "Night Shift",
-                    avatar: "https://i.pravatar.cc/150?img=12",
-                  },
-                  {
-                    name: "Sunita Devi",
-                    role: "Maintenance",
-                    stat1: "All Blocks",
-                    stat2: "Day Shift",
-                    avatar: "https://i.pravatar.cc/150?img=5",
-                  },
-                  {
-                    name: "Vikram Singh",
-                    role: "Mess Incharge",
-                    stat1: "Cafeteria",
-                    stat2: "Full Day",
-                    avatar: "https://i.pravatar.cc/150?img=14",
-                  },
-                ].map((person, idx) => (
-                  <tr key={idx} className="group cursor-pointer">
-                    <td className="bg-white py-4 pl-5 rounded-l-2xl shadow-sm border-y border-l border-white group-hover:border-sky-100 group-hover:shadow-md transition-all">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={person.avatar}
-                          alt={person.name}
-                          className="w-11 h-11 rounded-full object-cover group-hover:scale-105 transition-transform shadow-sm"
-                        />
-                        <div>
-                          <h4 className="font-bold text-gray-900 group-hover:text-sky-700 transition-colors">
-                            {person.name}
-                          </h4>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="bg-white py-4 shadow-sm border-y border-white group-hover:border-sky-100 transition-all">
-                      <span className="text-sm font-semibold text-gray-500">
-                        {person.role}
-                      </span>
-                    </td>
-                    <td className="bg-white py-4 shadow-sm border-y border-white group-hover:border-sky-100 transition-all">
-                      <span className="text-sm font-semibold text-gray-500">
-                        {person.stat1}
-                      </span>
-                    </td>
-                    <td className="bg-white py-4 shadow-sm border-y border-white group-hover:border-sky-100 transition-all">
-                      <span className="text-sm font-semibold text-gray-500">
-                        {person.stat2}
-                      </span>
-                    </td>
-                    <td className="bg-white py-4 pr-5 rounded-r-2xl shadow-sm border-y border-r border-white group-hover:border-sky-100 transition-all text-right">
-                      <div className="flex justify-end items-center gap-3">
-                        <button className="bg-[#FFB800] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-[0_4px_10px_rgba(255,184,0,0.25)] hover:bg-yellow-500 hover:shadow-[0_6px_14px_rgba(255,184,0,0.3)] transition-all active:scale-95">
-                          Reach Out
-                        </button>
-                        <button className="p-2 border-2 border-gray-100 rounded-xl text-gray-400 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-200 transition-all active:scale-95">
-                          <Mail className="w-[18px] h-[18px]" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:text-gray-800 transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              <tbody>{renderStaffRows()}</tbody>
             </table>
           </div>
         </div>

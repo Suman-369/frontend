@@ -58,7 +58,7 @@ const RoomFormFields = ({
             name="roomNumber"
             value={formData.roomNumber}
             onChange={handleInputChange}
-            placeholder="E.g. A-101"
+            placeholder="E.g. G-101 (Ganga Hostel)"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
           />
         </div>
@@ -85,7 +85,7 @@ const RoomFormFields = ({
             name="block"
             value={formData.block}
             onChange={handleInputChange}
-            placeholder="E.g. Block A"
+            placeholder="E.g. Boys Hostel A, Girls Hostel B"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
           />
         </div>
@@ -144,7 +144,7 @@ const RoomFormFields = ({
         name="amenities"
         value={amenitiesInput}
         onChange={(e) => setAmenitiesInput(e.target.value)}
-        placeholder="E.g. AC, TV, WiFi, Attach Bath (comma separated)"
+        placeholder="E.g. Study Table, Bed, Wardrobe, Ceiling Fan, Attached Washroom"
         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
       />
     </div>
@@ -246,7 +246,7 @@ const RoomFormFields = ({
         <div className="relative">
           <input
             type="text"
-            placeholder="Type student name or email (e.g. John Doe, john@example.com)"
+            placeholder="Type student name or email (e.g. Rahul Sharma, rahul@college.edu)"
             value={studentSearchQuery}
             onChange={(e) => setStudentSearchQuery(e.target.value)}
             className="w-full pl-11 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
@@ -700,7 +700,7 @@ const ManageRoom = () => {
         ))}
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden flex-1">
+      <div className="bg-white border border-gray-100 rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden flex-1 flex flex-col min-h-0">
         <div className="p-6 border-b border-gray-100">
           <div className="relative max-w-md">
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -715,7 +715,7 @@ const ManageRoom = () => {
         </div>
 
         {/* Mobile Cards */}
-        <div className="space-y-4 md:hidden p-6">
+        <div className="space-y-4 md:hidden p-6 overflow-y-auto flex-1 min-h-0 pb-32">
           {filteredRooms.length === 0 ? (
             <div className="text-center py-12 px-4 text-gray-500 bg-white/50 backdrop-blur-sm rounded-2xl border border-dashed border-gray-200">
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-2xl flex items-center justify-center">
@@ -727,34 +727,50 @@ const ManageRoom = () => {
             filteredRooms.map((room) => (
               <div key={room._id} className="group">
                 <div className="min-h-[400px] bg-white border border-gray-100 rounded-3xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
-                  <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-start gap-4">
-                      <div className="w-24 h-24 aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0 shadow-md">
+                  <div className="p-5 sm:p-6 border-b border-gray-100">
+                    <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+                      <div className="w-full sm:w-28 h-48 sm:h-28 sm:aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0 shadow-md relative">
                         {room.images && room.images.length > 0 ? (
                           <img
                             src={room.images[0]}
                             alt="room"
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                            <Home className="w-10 h-10 text-blue-400" />
+                            <Home className="w-12 h-12 sm:w-10 sm:h-10 text-blue-400" />
                           </div>
                         )}
+                        {/* Mobile overlay status badge instead of squeezing text */}
+                        <div className="absolute top-3 right-3 sm:hidden shadow-sm">
+                          <span
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border backdrop-blur-md ${
+                              room.status === "available"
+                                ? "bg-emerald-100/90 text-emerald-800 border-emerald-200/50"
+                                : room.status === "full"
+                                  ? "bg-indigo-100/90 text-indigo-800 border-indigo-200/50"
+                                  : "bg-orange-100/90 text-orange-800 border-orange-200/50"
+                            }`}
+                          >
+                            {room.status.charAt(0).toUpperCase() +
+                              room.status.slice(1)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1 min-w-0 w-full pt-1 sm:pt-0">
+                        <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
                           <div>
-                            <h3 className="text-xl font-bold text-gray-900 leading-tight truncate">
+                            <h3 className="text-xl font-bold text-gray-900 leading-tight">
                               Room {room.roomNumber}
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 mt-1 font-medium">
                               Block {room.block || "N/A"} • Floor{" "}
                               {room.floor || "N/A"}
                             </p>
                           </div>
+                          {/* Desktop status badge */}
                           <span
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 shadow-sm border ${
+                            className={`hidden sm:block px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 shadow-sm border ${
                               room.status === "available"
                                 ? "bg-emerald-100 text-emerald-800 border-emerald-200"
                                 : room.status === "full"
@@ -766,11 +782,11 @@ const ManageRoom = () => {
                               room.status.slice(1)}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-2">
+                        <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-3">
                           {room.description ||
-                            "Comfortable room with modern amenities."}
+                            "Standard hostel room with basic amenities."}
                         </p>
-                        <div className="flex flex-wrap gap-1.5 mb-2">
+                        <div className="flex flex-wrap gap-1.5 mb-3">
                           {(room.amenities || []).slice(0, 4).map((a, idx) => (
                             <span
                               key={idx}
@@ -780,12 +796,12 @@ const ManageRoom = () => {
                             </span>
                           ))}
                         </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                          <p className="text-lg font-bold text-gray-900">
+                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                          <p className="text-lg font-bold text-gray-900 tracking-tight">
                             ₹{Number(room.price || 0).toLocaleString("en-IN")}
                           </p>
-                          <div className="text-xs text-gray-500 font-medium bg-gray-50 px-2.5 py-1 rounded-xl">
-                            {room.occupants?.length || 0}/{room.capacity}
+                          <div className="text-xs text-gray-500 font-medium bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                            {room.occupants?.length || 0}/{room.capacity} Occupied
                           </div>
                         </div>
                       </div>
@@ -818,7 +834,7 @@ const ManageRoom = () => {
         </div>
 
         {/* Desktop Table */}
-        <div className="overflow-x-auto hidden md:block">
+        <div className="overflow-auto hidden md:block flex-1 min-h-0 pb-20">
           <table className="w-full text-left border-collapse min-w-max">
             <thead>
               <tr className="bg-gray-50/50">
@@ -967,7 +983,7 @@ const ManageRoom = () => {
             </div>
 
             {/* Content */}
-            <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-6">
+            <div className="p-6 md:p-8 pb-24 md:pb-8 overflow-y-auto flex-1 min-h-0 space-y-6">
               {errorMsg && (
                 <div className="p-4 bg-red-50 text-red-700 text-sm rounded-xl font-medium border border-red-200">
                   {errorMsg}
@@ -1007,7 +1023,7 @@ const ManageRoom = () => {
               </button>
             </div>
 
-            <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-6">
+            <div className="p-6 md:p-8 pb-24 md:pb-8 overflow-y-auto flex-1 min-h-0 space-y-6">
               {viewRoom.images && viewRoom.images.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="text-lg font-bold text-gray-900">
@@ -1220,7 +1236,7 @@ const ManageRoom = () => {
               </button>
             </div>
 
-            <div className="p-6 md:p-8 overflow-y-auto flex-1 space-y-6">
+            <div className="p-6 md:p-8 pb-24 md:pb-8 overflow-y-auto flex-1 min-h-0 space-y-6">
               {errorMsg && (
                 <div className="p-4 bg-red-50 text-red-700 text-sm rounded-xl font-medium border border-red-200">
                   {errorMsg}

@@ -23,7 +23,7 @@ const Application = () => {
     try {
       setLoading(true);
       const statusParam = statusFilter === 'all' ? '' : `?status=${statusFilter}`;
-      const res = await roomApi.get(`/staff/applications${statusParam}`, {
+      const res = await roomApi.get(`/applications${statusParam}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setApplications(res.data.applications || []);
@@ -54,7 +54,7 @@ const Application = () => {
     setNoteModal({ open: false, app: null, decision: null });
 
     try {
-      await roomApi.patch(`/staff/applications/${appId}/decision`, {
+      await roomApi.patch(`/applications/${appId}/decision`, {
         decision,
         staffNote: noteModal.staffNote || '',
       }, {

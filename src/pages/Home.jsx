@@ -72,50 +72,50 @@ function IconInstagram(props) {
 
 const navLinks = [
   { label: "Home", href: "#" },
-  { label: "Courses", href: "#courses" },
-  { label: "Mentors", href: "#mentors" },
+  { label: "Hostels", href: "#courses" },
+  { label: "Wardens", href: "#mentors" },
   { label: "About", href: "#about" },
 ];
 
 const categories = [
   {
-    title: "Design & Development",
-    count: "120+ Courses",
+    title: "Room Allotment",
+    count: "Single, Double & Triple Rooms",
     icon: Palette,
     iconBg: "bg-sky-100 text-sky-600",
     active: false,
   },
   {
-    title: "Marketing & Communication",
-    count: "85+ Courses",
+    title: "Mess & Dining",
+    count: "Breakfast, Lunch & Dinner",
     icon: Megaphone,
     iconBg: "bg-white text-white",
     active: true,
   },
   {
-    title: "Programming & Tech",
-    count: "200+ Courses",
+    title: "Wi-Fi & Laundry",
+    count: "24/7 High-Speed Internet",
     icon: Code2,
     iconBg: "bg-violet-100 text-violet-600",
     active: false,
   },
   {
-    title: "Business & Finance",
-    count: "95+ Courses",
+    title: "Fee & Payments",
+    count: "Online Payment Portal",
     icon: BarChart3,
     iconBg: "bg-emerald-100 text-emerald-600",
     active: false,
   },
   {
-    title: "Career & Growth",
-    count: "60+ Courses",
+    title: "Complaints & Support",
+    count: "24/7 Warden Helpdesk",
     icon: Briefcase,
     iconBg: "bg-amber-100 text-amber-600",
     active: false,
   },
   {
-    title: "Creative Arts",
-    count: "45+ Courses",
+    title: "Security & CCTV",
+    count: "Round-the-Clock Surveillance",
     icon: Sparkles,
     iconBg: "bg-rose-100 text-rose-600",
     active: false,
@@ -124,85 +124,85 @@ const categories = [
 
 const courses = [
   {
-    tag: "Web Design",
-    title: "Modern UI/UX Fundamentals",
-    students: "500k+",
-    rating: "4.9",
-    price: "$105.00",
-    image:
-      "https://images.unsplash.com/photo-1587440871875-44734201af8c?w=600&q=80",
-  },
-  {
-    tag: "Development",
-    title: "Full-Stack Web Development",
-    students: "320k+",
+    tag: "Boys Hostel",
+    title: "Block A – Standard Double Rooms",
+    students: "120",
     rating: "4.8",
-    price: "$129.00",
+    price: "₹8,500/mo",
     image:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
+      "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80",
   },
   {
-    tag: "Marketing",
-    title: "Digital Marketing Masterclass",
-    students: "410k+",
+    tag: "Girls Hostel",
+    title: "Block B – Premium Single Rooms",
+    students: "96",
     rating: "4.9",
-    price: "$89.00",
+    price: "₹11,000/mo",
     image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80",
+      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=80",
   },
   {
-    tag: "Data Science",
-    title: "Python for Data Analysis",
-    students: "280k+",
+    tag: "Boys Hostel",
+    title: "Block C – Triple Sharing Rooms",
+    students: "180",
+    rating: "4.6",
+    price: "₹6,200/mo",
+    image:
+      "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=600&q=80",
+  },
+  {
+    tag: "Girls Hostel",
+    title: "Block D – AC Double Rooms",
+    students: "110",
+    rating: "4.9",
+    price: "₹13,500/mo",
+    image:
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=80",
+  },
+  {
+    tag: "International",
+    title: "Block E – International Student Wing",
+    students: "48",
+    rating: "4.8",
+    price: "₹15,000/mo",
+    image:
+      "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80",
+  },
+  {
+    tag: "PG Hostel",
+    title: "Block F – Postgraduate Residency",
+    students: "72",
     rating: "4.7",
-    price: "$119.00",
+    price: "₹10,000/mo",
     image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
-  },
-  {
-    tag: "Design",
-    title: "Brand Identity Workshop",
-    students: "190k+",
-    rating: "4.8",
-    price: "$75.00",
-    image:
-      "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80",
-  },
-  {
-    tag: "Business",
-    title: "Leadership & Team Skills",
-    students: "350k+",
-    rating: "4.9",
-    price: "$95.00",
-    image:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80",
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&q=80",
   },
 ];
 
 const testimonials = [
   {
     quote:
-      "Q-Bee made it easy to learn at my own pace. The mentors are supportive and the courses are well structured.",
-    name: "Sarah Mitchell",
-    role: "Product Designer",
+      "The hostel management system made check-in so smooth. Room allocation was done within minutes and the warden was always available.",
+    name: "Priya Sharma",
+    role: "B.Tech 3rd Year",
     avatar:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&q=80",
     featured: false,
   },
   {
     quote:
-      "The quality of content exceeded my expectations. I landed a new role within three months of finishing my track.",
-    name: "James Chen",
-    role: "Software Engineer",
+      "From mess menus to fee payments, everything is managed through one portal. I never have to run around offices anymore—it's a huge relief.",
+    name: "Arjun Mehta",
+    role: "M.Sc 1st Year",
     avatar:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80",
     featured: true,
   },
   {
     quote:
-      "Affordable pricing and a huge variety of courses. I recommend Q-Bee to everyone on my team.",
-    name: "Emily Rodriguez",
-    role: "Marketing Lead",
+      "Raising a maintenance complaint took less than two minutes. The staff resolved it the very next day. Really impressed with the response time.",
+    name: "Sneha Dutta",
+    role: "MBA 2nd Year",
     avatar:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&q=80",
     featured: false,
@@ -210,8 +210,8 @@ const testimonials = [
 ];
 
 const footerLinks = {
-  Links: ["Home", "Courses", "Mentors", "Pricing"],
-  Community: ["Blog", "Forum", "Events", "Partners"],
+  Links: ["Home", "Hostels", "Wardens", "Pricing"],
+  Community: ["Notice Board", "Events", "Alumni", "Partners"],
   Resources: ["Help Center", "Terms", "Privacy", "Careers"],
 };
 
@@ -362,9 +362,9 @@ const Home = () => {
               Is Now More <span className="text-indigo-600">Easy</span>
             </h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg">
-              Learn from expert mentors, explore courses across categories, and
-              grow your skills with a platform built for modern
-              learners—anytime, anywhere.
+              Manage room allotments, mess schedules, fee payments, and
+              complaints—all from one smart platform built for college students
+              and hostel staff.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
@@ -383,8 +383,8 @@ const Home = () => {
               <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-100/80" />
               <div className="absolute left-1/2 top-1/2 z-10 h-[min(75vw,340px)] w-[min(75vw,340px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-4 border-white shadow-xl sm:h-[320px] sm:w-[320px]">
                 <img
-                  src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80"
-                  alt="Student with books"
+                  src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80"
+                  alt="College hostel building"
                   className="h-full w-full object-cover"
                 />
               </div>
@@ -401,10 +401,10 @@ const Home = () => {
               </div>
               <div>
                 <p className="text-lg font-bold text-slate-900 sm:text-xl">
-                  10k+
+                  20+
                 </p>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Total courses
+                  Hostel Blocks
                 </p>
               </div>
             </div>
@@ -414,10 +414,10 @@ const Home = () => {
               </div>
               <div>
                 <p className="text-lg font-bold text-slate-900 sm:text-xl">
-                  500+
+                  50+
                 </p>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Expert mentors
+                  Wardens & Staff
                 </p>
               </div>
             </div>
@@ -427,10 +427,10 @@ const Home = () => {
               </div>
               <div>
                 <p className="text-lg font-bold text-slate-900 sm:text-xl">
-                  300k+
+                  3,000+
                 </p>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Students globally
+                  Students Housed
                 </p>
               </div>
             </div>
@@ -438,7 +438,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Categories / Services */}
       <section
         id="mentors"
         className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
@@ -447,18 +447,18 @@ const Home = () => {
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-                Explore courses by category
+                Explore hostel services
               </h2>
               <p className="mt-2 max-w-lg text-slate-500">
-                Pick a path that matches your goals—from design to business and
-                beyond.
+                Everything you need for a comfortable stay—from room booking to
+                mess, laundry, and beyond.
               </p>
             </div>
             <button
               type="button"
               className="shrink-0 self-start rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-600 sm:self-auto"
             >
-              All Category
+              All Services
             </button>
           </div>
 
@@ -505,7 +505,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Popular courses */}
+      {/* Hostel Blocks */}
       <section
         id="courses"
         className="scroll-mt-24 bg-slate-50/80 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
@@ -514,17 +514,17 @@ const Home = () => {
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-                Popular courses for you
+                Available hostel blocks
               </h2>
               <p className="mt-2 text-slate-500">
-                Hand-picked programs learners love right now.
+                Browse blocks and room types that best suit your needs.
               </p>
             </div>
             <button
               type="button"
               className="shrink-0 self-start rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:self-auto"
             >
-              See All Jobs
+              See All Blocks
             </button>
           </div>
 
@@ -549,7 +549,7 @@ const Home = () => {
                     {course.title}
                   </h3>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm text-slate-500">
-                    <span>{course.students} students</span>
+                    <span>{course.students} seats</span>
                     <span className="flex items-center gap-1 font-medium text-amber-500">
                       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                       {course.rating}
@@ -569,7 +569,7 @@ const Home = () => {
       <section className="px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <h2 className="mx-auto mb-12 max-w-3xl text-center text-2xl font-bold text-slate-900 sm:text-3xl">
-            What our students are saying about us
+            What our residents are saying about us
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {testimonials.map((t) => (
@@ -633,10 +633,11 @@ const Home = () => {
       <section className="border-t border-slate-100 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold text-slate-900">
-            Subscribe Newsletter
+            Subscribe for Updates
           </h2>
           <p className="mt-2 text-slate-500">
-            Get updates on new courses and exclusive offers.
+            Get notified about room availability, mess menus, and hostel
+            announcements.
           </p>
           <form
             className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-stretch"
@@ -648,7 +649,7 @@ const Home = () => {
             <input
               id="newsletter-email"
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter your college email"
               className="min-h-12 flex-1 rounded-xl border border-slate-200 px-4 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
             <button
@@ -669,10 +670,10 @@ const Home = () => {
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div className="lg:col-span-1">
-              <p className="text-xl font-bold text-indigo-600">Q-Bee</p>
+              <p className="text-xl font-bold text-indigo-600">HMS</p>
               <p className="mt-3 max-w-xs text-sm leading-relaxed text-slate-500">
-                Quality online education for everyone. Learn skills that matter
-                with mentors who care.
+                Hostel Management System — simplifying student accommodation
+                for colleges across the country.
               </p>
               <div className="mt-4 flex gap-3">
                 <a
@@ -726,7 +727,7 @@ const Home = () => {
 
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-8 sm:flex-row">
             <p className="text-sm text-slate-500">
-              © {new Date().getFullYear()} Q-Bee. All rights reserved.
+              © {new Date().getFullYear()} HMS – Hostel Management System. All rights reserved.
             </p>
             <button
               type="button"
