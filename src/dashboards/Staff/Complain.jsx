@@ -10,6 +10,8 @@ import {
   Loader2,
   Edit3,
   Trash2,
+  RefreshCw,
+  XCircle,
 } from "lucide-react";
 
 const getStatusColor = (status) => {
@@ -63,6 +65,7 @@ const Complain = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -77,12 +80,23 @@ const Complain = () => {
       setRooms(roomsRes.data.rooms || []);
     } catch (err) {
       console.error("Failed to fetch data:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to fetch complaints. Check your connection and auth.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const refresh = () => {
+    setError(null);
+    setLoading(true);
+    fetchData();
+  };
+
   useEffect(() => {
+    setError(null);
     fetchData();
   }, [filterStatus]);
 
@@ -164,7 +178,10 @@ const Complain = () => {
         <div className="flex gap-3">
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setError(null);
+            }}
             className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 focus:ring-2 focus:ring-indigo-400 outline-none"
           >
             {statusOptions.map((option) => (
@@ -173,8 +190,51 @@ const Complain = () => {
               </option>
             ))}
           </select>
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1"
+            title="Refresh data"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
+
+      {error && (
+        <div className="p-6 rounded-3xl bg-red-50 border-2 border-red-200 mb-6">
+          <div className="flex items-start gap-3">
+            <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-red-900 mb-1">
+                Failed to load complaints
+              </p>
+              <p className="text-sm text-red-800 mb-3">{error}</p>
+            </div>
+          </div>
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-all disabled:opacity-50 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Retrying...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       <div className="bg-white border border-gray-100 rounded-3xl shadow-[0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden flex-1">
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
@@ -215,7 +275,9 @@ const Complain = () => {
               {filteredComplaints.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="py-12 text-center text-gray-500">
-                    No complaints found
+                    {error
+                      ? "Error loading data. Please refresh."
+                      : "No complaints matching your filters. Have students submit complaints via their dashboard, then refresh."}
                   </td>
                 </tr>
               ) : (
@@ -290,13 +352,19 @@ const Complain = () => {
                       </button>
                       <button
                         onClick={async () => {
-                          if (window.confirm('Are you sure you want to delete this complaint? This action cannot be undone.')) {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this complaint? This action cannot be undone.",
+                            )
+                          ) {
                             try {
-                              await complaintApi.delete(`/staff/complaints/${comp.id}`);
+                              await complaintApi.delete(
+                                `/staff/complaints/${comp.id}`,
+                              );
                               fetchData();
                             } catch (err) {
-                              console.error('Delete failed:', err);
-                              alert('Failed to delete complaint');
+                              console.error("Delete failed:", err);
+                              alert("Failed to delete complaint");
                             }
                           }
                         }}
