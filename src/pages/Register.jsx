@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import hostelHero from "../assets/hostel.jpg";
 import api from "../lib/api";
 
-const BASE_URL = import.meta.env.VITE_AUTH_API_URL;
+const BASE_URL = import.meta.env.VITE_AUTH_API_URL?.replace(/["';]/g, "");
 
 const primary =
   "bg-[#5D3891] hover:bg-[#4d2f7a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5D3891]";

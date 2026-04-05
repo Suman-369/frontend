@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
-const ROOM_SERVICE_URL = import.meta.env.VITE_ROOM_API_URL;
+const ROOM_SERVICE_URL = import.meta.env.VITE_ROOM_API_URL?.replace(/["';]/g, "");
 
 // ── Extracted OUTSIDE ManageRoom to prevent remount on every render ──
 const RoomFormFields = ({

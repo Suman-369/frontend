@@ -108,7 +108,7 @@ export function SocialButtons({ onGoogleClick }) {
       return;
     }
 
-    window.location.href = `${import.meta.env.VITE_AUTH_API_URL}/google`;
+    window.location.href = `${import.meta.env.VITE_AUTH_API_URL?.replace(/["';]/g, "")}/google`;
   };
 
   return (
