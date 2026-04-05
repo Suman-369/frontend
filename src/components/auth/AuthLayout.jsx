@@ -108,7 +108,7 @@ export function SocialButtons({ onGoogleClick }) {
       return;
     }
 
-    window.location.href = "http://localhost:3000/api/auth/google";
+    window.location.href = `${import.meta.env.VITE_AUTH_API_URL}/google`;
   };
 
   return (

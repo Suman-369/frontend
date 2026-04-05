@@ -250,7 +250,12 @@ const Register = () => {
             <AlertTitle>{alert.title}</AlertTitle>
             <AlertDescription>{alert.description}</AlertDescription>
             <AlertAction>
-              <Button variant="outline" size="xs" onClick={hideAlert}>
+              <Button 
+                variant="outline" 
+                size="xs" 
+                onClick={hideAlert} 
+                className="opacity-100 visible flex bg-white text-gray-900 border-gray-200 hover:bg-gray-100 shadow-sm"
+              >
                 Dismiss
               </Button>
             </AlertAction>

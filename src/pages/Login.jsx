@@ -72,7 +72,7 @@ const Login = () => {
       localStorage.setItem("role", data.user.role);
       if (data.token) {
         localStorage.setItem("token", data.token);
-        document.cookie = `token=${data.token}; max-age=${30 * 24 * 60 * 60}; path=/; SameSite=None; Secure; domain=localhost;`;
+        document.cookie = `token=${data.token}; max-age=${30 * 24 * 60 * 60}; path=/; SameSite=None; Secure;`;
       }
 
       showAlert({
@@ -175,7 +175,12 @@ const Login = () => {
             <AlertTitle>{alert.title}</AlertTitle>
             <AlertDescription>{alert.description}</AlertDescription>
             <AlertAction>
-              <Button variant="outline" size="xs" onClick={hideAlert}>
+              <Button 
+                variant="outline" 
+                size="xs" 
+                onClick={hideAlert} 
+                className="opacity-100 visible flex bg-white text-gray-900 border-gray-200 hover:bg-gray-100 shadow-sm"
+              >
                 Dismiss
               </Button>
             </AlertAction>

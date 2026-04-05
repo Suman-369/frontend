@@ -14,7 +14,7 @@ const AuthSuccess = () => {
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("role", user.role);
         localStorage.setItem("token", tokenParam);
-        document.cookie = `token=${tokenParam}; max-age=${30 * 24 * 60 * 60}; path=/; SameSite=None; Secure; domain=localhost;`;
+        document.cookie = `token=${tokenParam}; max-age=${30 * 24 * 60 * 60}; path=/; SameSite=None; Secure;`;
 
         if (user.role === "admin") {
           navigate("/admin");
