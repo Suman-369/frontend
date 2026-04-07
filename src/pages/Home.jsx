@@ -218,6 +218,7 @@ const footerLinks = {
 const Home = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -228,7 +229,28 @@ const Home = () => {
         console.error(e);
       }
     }
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    }
+  };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -317,6 +339,14 @@ const Home = () => {
                 </a>
               ))}
               <hr className="border-slate-100" />
+              {deferredPrompt && (
+                <button
+                  onClick={handleInstallClick}
+                  className="text-left text-base font-bold text-indigo-600 hover:text-indigo-800"
+                >
+                  Install App
+                </button>
+              )}
               {user ? (
                 <Link
                   to={`/${user.role === 'staff' ? 'staff' : user.role === 'admin' ? 'admin' : 'student'}`}
