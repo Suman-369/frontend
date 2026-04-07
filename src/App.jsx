@@ -33,6 +33,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-white">
+        <PWAInstall />
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
