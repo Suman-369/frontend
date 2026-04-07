@@ -10,6 +10,7 @@ export function PWAInstall() {
     const handler = (e) => {
       e.preventDefault()
       setDeferredPrompt(e)
+      console.log('PWA install prompt ready', e)
     }
 
     window.addEventListener('beforeinstallprompt', handler)
@@ -37,13 +38,13 @@ export function PWAInstall() {
   if (installed || !deferredPrompt) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 md:hidden">
-      <Button 
+    <div className="fixed bottom-6 right-6 z-50 animate-pulse">
+      <Button aria-label="Install HMS App" 
         onClick={handleInstall} 
         className="shadow-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white p-4 rounded-full"
         size="icon"
       >
-        <Download className="h-5 w-5" />
+        <Download className="h-5 w-5 sm:h-6 sm:w-6" />
       </Button>
     </div>
   )
